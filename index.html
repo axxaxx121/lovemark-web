@@ -1,0 +1,3349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>爱记 LoveMark</title>
+  <style>
+/* 由 build.js 生成，请勿直接修改本文件（改动请编辑 src/ 下对应文件后重新构建） */
+/**
+ * style.css —— 全站样式：CSS 变量主题 + 布局骨架 + 基础组件
+ * 视觉规范见 design.md §8（粉色浪漫）
+ */
+
+/* ========== 1. 主题变量（design.md §8.1） ========== */
+:root {
+  /* 色彩 */
+  --accent: #FF7EB3;
+  --accent-grad: linear-gradient(135deg, #FF9A9E, #FECFEF);
+  --bg: linear-gradient(160deg, #FFF0F5, #FFE4EC);
+  --card: rgba(255, 255, 255, 0.62);
+  --card-fallback: rgba(255, 255, 255, 0.94); /* 不支持毛玻璃时的降级（tech-stack.md §8） */
+  --text: #5C3A4E;
+  --text-dim: rgba(92, 58, 78, 0.6);
+  --shadow: 0 8px 32px rgba(255, 122, 179, 0.25);
+  /* 形状与排版（design.md §8.3） */
+  --radius-card: 20px;
+  --radius-modal: 24px;
+  --radius-pill: 999px;
+  --blur: 20px;
+  --font: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* 动效（design.md §8.4） */
+  --transition: 0.25s ease;
+  /* 布局（design.md §5.1） */
+  --content-max: 720px;
+  --tabbar-h: 64px;
+}
+
+/* ========== 2. 基础重置与全局 ========== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  min-height: 100vh;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg) fixed;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ========== 3. 页面容器（design.md §5.1） ========== */
+#app {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* 桌面端给顶部 Tab 栏留空间；移动端给底部 Tab 栏 + FAB 留空间 */
+@media (min-width: 768px) {
+  #app { padding-top: 104px; padding-bottom: 96px; }
+}
+@media (max-width: 767px) {
+  #app {
+    padding-top: 24px;
+    padding-bottom: calc(var(--tabbar-h) + 96px + env(safe-area-inset-bottom));
+  }
+}
+
+/* 页面容器动画（ui.js 每次渲染包裹 .page-anim） */
+.page-anim { animation: page-in var(--transition); }
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* ========== 4. 基础组件：卡片（design.md §8.1/§8.3） ========== */
+.card {
+  background: var(--card);
+  -webkit-backdrop-filter: blur(var(--blur));
+  backdrop-filter: blur(var(--blur));
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+/* 毛玻璃降级（tech-stack.md §8） */
+@supports not ((backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px))) {
+  .card { background: var(--card-fallback); }
+}
+
+.page-card {
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* ========== 5. Tab 栏（design.md §5.1） ========== */
+#tabBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  background: var(--card);
+  -webkit-backdrop-filter: blur(var(--blur));
+  backdrop-filter: blur(var(--blur));
+  box-shadow: var(--shadow);
+  z-index: 10;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-dim);
+  transition: color var(--transition);
+}
+
+.tab-icon { font-size: 22px; line-height: 1; }
+.tab-label { font-size: 11px; }
+
+.tab.is-active { color: var(--accent); }
+
+/* 移动端：底部固定 */
+@media (max-width: 767px) {
+  #tabBar {
+    bottom: 0;
+    height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+  }
+}
+
+/* 桌面端：顶部居中 */
+@media (min-width: 768px) {
+  #tabBar {
+    top: 16px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: var(--content-max);
+    max-width: calc(100vw - 32px);
+    height: var(--tabbar-h);
+    border-radius: var(--radius-pill);
+    padding: 0 24px;
+  }
+  .tab { flex-direction: row; gap: 6px; }
+  .tab-label { font-size: 14px; }
+}
+
+/* 毛玻璃降级：Tab 栏同样适用 */
+@supports not ((backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px))) {
+  #tabBar { background: var(--card-fallback); }
+}
+
+/* ========== 6. FAB 写日记按钮（design.md §5.1，暂不绑定动作） ========== */
+.fab {
+  position: fixed;
+  right: max(16px, calc(50% - 344px)); /* 始终贴内容区（720px）右缘 16px */
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-grad);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  transition: transform var(--transition), box-shadow var(--transition);
+  z-index: 9;
+}
+
+.fab:active { transform: scale(0.96); }
+.fab-icon { font-size: 18px; line-height: 1; }
+
+@media (max-width: 767px) {
+  .fab { bottom: calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 768px) {
+  .fab { bottom: 32px; }
+}
+
+/* ========== 7. 遮罩层（弹窗/大图预览，Step 10 起启用） ========== */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(60, 20, 40, 0.35);
+  z-index: 20;
+}
+
+/* ========== 8. Toast（design.md §7.4） ========== */
+#toasts {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 30;
+  pointer-events: none; /* 容器不挡点击，气泡自身可点 */
+}
+
+.toast {
+  pointer-events: auto;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  background: rgba(92, 58, 78, 0.85);
+  color: #fff;
+  font-size: 14px;
+  box-shadow: var(--shadow);
+  animation: toast-in 0.25s ease;
+  max-width: calc(100vw - 48px);
+}
+
+.toast-out {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 767px) {
+  #toasts { bottom: calc(var(--tabbar-h) + 88px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 768px) {
+  #toasts { bottom: 96px; }
+}
+
+/* ========== 9. 弹窗与按钮（design.md §7.4/§8.3） ========== */
+.modal-mask { position: absolute; inset: 0; }
+
+.modal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(400px, calc(100vw - 48px));
+  max-height: 80vh;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.94); /* 高不透明度保证可读性 */
+  border-radius: var(--radius-modal);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  animation: page-in var(--transition);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.modal-message {
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  transition: opacity var(--transition);
+}
+
+.btn:active { opacity: 0.7; }
+.btn-primary { background: var(--accent-grad); color: #fff; }
+.btn-ghost { background: rgba(92, 58, 78, 0.08); color: var(--text); }
+.btn-danger { background: #E85D75; color: #fff; }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+.modal-actions { margin-top: 16px; }
+
+/* ========== 10. 深色背景主题变量（星空粉夜等） ========== */
+body.bg-dark {
+  --text: #F7EDF2;
+  --text-dim: rgba(247, 237, 242, 0.72);
+  --card: rgba(44, 22, 36, 0.55);
+  --card-fallback: rgba(58, 32, 48, 0.94);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* ========== 11. 通用表单元素 ========== */
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(92, 58, 78, 0.15);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text);
+  font: inherit;
+  margin-bottom: 12px;
+}
+
+.input:focus { outline: 2px solid var(--accent); }
+textarea.input { resize: vertical; min-height: 90px; }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--text-dim);
+  font-size: 14px;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.chip-on { background: var(--accent-grad); color: #fff; font-weight: 700; }
+
+.field-label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.hint { font-size: 12px; color: var(--text-dim); margin: -6px 0 12px; min-height: 16px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hidden-input { display: none; }
+.page-card-text { text-align: center; color: var(--text-dim); padding: 20px 0; }
+
+.avatar-upload {
+  position: relative;
+  aspect-ratio: 1;
+  width: 72px;
+  margin: 0 auto 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.avatar-upload::before { content: '➕'; }
+.avatar-sm { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.avatar-row { justify-items: center; margin-bottom: 4px; }
+
+/* ========== 12. 初始化向导（Step 11） ========== */
+body.wizard #tabBar,
+body.wizard .fab { display: none; }
+
+.wizard-box { max-width: 420px; margin: 8vh auto 0; padding: 28px 24px; }
+.wizard-steps { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+
+.ws-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(92, 58, 78, 0.2);
+  transition: all var(--transition);
+}
+
+.ws-on { width: 22px; border-radius: 999px; background: var(--accent); }
+.wizard-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+.wizard-desc { color: var(--text-dim); text-align: center; margin-bottom: 20px; }
+.wizard-box .btn-primary { display: block; margin: 0 auto; min-width: 140px; }
+.wizard-box .modal-actions { justify-content: space-between; }
+
+/* ========== 13. 首页（Step 12~13/19） ========== */
+.home-head { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 8px 0 6px; }
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-ph { font-size: 30px; }
+
+.heart-pulse { font-size: 28px; animation: pulse 1.2s ease-in-out infinite; }
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.22); }
+}
+
+.home-names { text-align: center; font-weight: 700; margin-bottom: 14px; }
+.dot { color: var(--text-dim); margin: 0 4px; }
+
+.timer-card { text-align: center; padding: 26px 20px; margin-bottom: 14px; }
+.timer-label { font-size: 14px; color: var(--text-dim); }
+
+.timer-main {
+  font-size: 28px;
+  font-weight: 800;
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-sub { font-size: 16px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+.quote-card { text-align: center; margin-bottom: 14px; }
+.quote-label { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.quote-text { font-size: 16px; margin-bottom: 10px; }
+
+.anniv-card { display: flex; align-items: center; gap: 14px; cursor: pointer; margin-bottom: 14px; }
+.anniv-icon { font-size: 30px; flex-shrink: 0; }
+.anniv-card-main { flex: 1; min-width: 0; }
+.anniv-card-name { font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.anniv-card-sub { font-size: 13px; color: var(--text-dim); }
+
+.home-recent { margin-top: 14px; }
+.home-recent-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 10px; }
+.link-btn { color: var(--accent); font-weight: 700; }
+
+.recent-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+
+.recent-card:hover { transform: translateY(-2px); }
+.recent-mood { font-size: 26px; }
+.recent-main { flex: 1; min-width: 0; }
+.recent-title { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-sub { font-size: 12px; color: var(--text-dim); }
+
+/* ========== 14. 日记时间轴与筛选（Step 14~15） ========== */
+.filter-chips { margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+.search-input { margin-bottom: 4px; }
+
+.timeline {
+  position: relative;
+  margin-top: 16px;
+  padding-left: 20px;
+  border-left: 2px solid rgba(255, 126, 179, 0.35);
+}
+
+.tl-day { position: relative; margin-bottom: 18px; }
+
+.tl-day::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.tl-date { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+
+.diary-card { margin-bottom: 10px; padding: 14px 16px; cursor: pointer; transition: transform var(--transition); }
+.diary-card:hover { transform: translateY(-2px); }
+.diary-card-head { display: flex; gap: 12px; align-items: flex-start; }
+.diary-mood { font-size: 28px; line-height: 1.2; }
+.diary-card-main { flex: 1; min-width: 0; }
+.diary-title { font-weight: 700; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.diary-excerpt {
+  color: var(--text-dim);
+  font-size: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.diary-meta { margin-top: 4px; font-size: 12px; color: var(--text-dim); }
+.diary-detail-meta { color: var(--text-dim); font-size: 13px; margin-bottom: 10px; }
+
+.diary-detail-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+/* ========== 15. 相册（Step 16~17） ========== */
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+@media (min-width: 768px) {
+  .photo-grid { grid-template-columns: repeat(5, 1fr); }
+}
+
+.photo-cell {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+
+.photo-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.photo-upload-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  border: 2px dashed rgba(255, 126, 179, 0.5);
+  color: var(--accent);
+}
+
+.lightbox {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24, 12, 20, 0.94);
+  padding: 32px 16px;
+}
+
+.lightbox-img { max-width: 100%; max-height: 62vh; object-fit: contain; border-radius: 12px; }
+
+.lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 18px;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.lightbox-nav.prev { left: 12px; }
+.lightbox-nav.next { right: 12px; }
+.lightbox-info { margin-top: 14px; text-align: center; color: rgba(255, 255, 255, 0.85); }
+.lightbox-caption { font-size: 15px; margin-bottom: 2px; }
+.lightbox-date { font-size: 12px; opacity: 0.7; margin-bottom: 10px; }
+
+/* ========== 16. 纪念日（Step 18~19） ========== */
+.anniv-hero { text-align: center; margin-bottom: 14px; padding: 28px 20px; }
+.anniv-hero-icon { font-size: 40px; }
+.anniv-hero-name { font-weight: 700; font-size: 18px; margin: 4px 0; }
+
+.anniv-hero-count {
+  font-size: 26px;
+  font-weight: 800;
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.anniv-hero-date { font-size: 13px; color: var(--text-dim); }
+.anniv-list { margin-top: 14px; }
+
+.anniv-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+}
+
+.anniv-row-main { flex: 1; min-width: 0; }
+.anniv-row-name { font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.anniv-row-sub { font-size: 13px; color: var(--text-dim); }
+
+.anniv-due { animation: due-glow 1.5s ease-in-out infinite; }
+
+@keyframes due-glow {
+  0%, 100% { box-shadow: var(--shadow); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 126, 179, 0.35), var(--shadow); }
+}
+
+.badge {
+  background: var(--accent-grad);
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ========== 17. 设置页（Step 20/22） ========== */
+.set-card { margin-bottom: 14px; padding: 16px 20px; }
+.set-title { font-size: 16px; margin-bottom: 8px; }
+.set-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+.set-info { min-width: 0; }
+.set-main { font-weight: 700; }
+.set-sub { font-size: 13px; color: var(--text-dim); }
+
+.bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+
+.bg-cell {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 8px;
+  box-shadow: var(--shadow);
+  transition: border-color var(--transition);
+}
+
+.bg-on { border-color: var(--accent); }
+
+.bg-name {
+  color: #5C3A4E;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(92, 58, 78, 0.2);
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left var(--transition);
+}
+
+.switch-on { background: var(--accent); }
+.switch-on::after { left: 23px; }
+
+/* ========== 18. 粒子与撒花（Step 19/21） ========== */
+.particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+.confetti { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+
+/* ========== 19. 降级存储横幅（Step 25） ========== */
+.fallback-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #FFE9B8;
+  color: #7A5B00;
+  font-size: 13px;
+  text-align: center;
+  padding: 8px 12px;
+}
+
+/* 横幅出现时下移顶部 Tab 栏与内容，避免遮挡 */
+body.show-banner #tabBar { top: 60px; }
+
+@media (min-width: 768px) {
+  body.show-banner #app { padding-top: 148px; }
+}
+
+@media (max-width: 767px) {
+  body.show-banner #app { padding-top: 56px; }
+}
+
+  </style>
+</head>
+<body>
+  <main id="app"><!-- 页面内容由 ui.js 按 LM.state.page 渲染 --></main>
+  <nav id="tabBar" aria-label="主导航">
+    <button class="tab is-active" type="button" data-action="switch-page" data-page="home"><span class="tab-icon">❤️</span><span class="tab-label">首页</span></button>
+    <button class="tab" type="button" data-action="switch-page" data-page="diary"><span class="tab-icon">📝</span><span class="tab-label">日记</span></button>
+    <button class="tab" type="button" data-action="switch-page" data-page="photos"><span class="tab-icon">📷</span><span class="tab-label">相册</span></button>
+    <button class="tab" type="button" data-action="switch-page" data-page="anniversaries"><span class="tab-icon">🎂</span><span class="tab-label">纪念日</span></button>
+    <button class="tab" type="button" data-action="switch-page" data-page="settings"><span class="tab-icon">⚙️</span><span class="tab-label">设置</span></button>
+  </nav>
+  <button id="fab" class="fab" type="button" aria-label="写日记" data-action="diary-new">
+    <span class="fab-icon">✏️</span><span class="fab-label">写日记</span>
+  </button>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="overlay" hidden></div>
+  <script>
+/* 由 build.js 生成，请勿直接修改本文件（改动请编辑 src/ 下对应文件后重新构建） */
+/**
+ * time.js —— 纯逻辑：恋爱时长、纪念日倒计时、模板日期计算
+ * 双环境导出：浏览器挂 LM.TimeMath，Node 中 module.exports 供测试
+ *
+ * 约定（architecture.md §2）：
+ * - 日期一律 'YYYY-MM-DD' 字符串，全部按本地时间计算
+ * - 禁止 new Date(str) 解析（UTC 时区陷阱），用正则 + new Date(y, m-1, d)
+ * - 2-29 钳制策略：加年/月钳制到 2-28；纪念日循环遇平年顺延 3-01
+ */
+(function (global) {
+  'use strict';
+
+  const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const MS_PER_DAY = 86400000;
+
+  /** 解析 'YYYY-MM-DD' → 本地零点 Date；非法格式或溢出日期（如 02-30）抛错 */
+  function parseDate(str) {
+    const m = DATE_RE.exec(String(str));
+    if (!m) throw new Error(`非法日期格式: ${str}`);
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    const date = new Date(y, mo, d);
+    // 溢出日期会被 JS 滚动（2026-02-30 → 03-02），回填校验拒绝
+    if (date.getFullYear() !== y || date.getMonth() !== mo || date.getDate() !== d) {
+      throw new Error(`非法日期: ${str}`);
+    }
+    return date;
+  }
+
+  /** Date → 'YYYY-MM-DD' */
+  function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  /** 两个 'YYYY-MM-DD' 之间的天数（后减前，可为负） */
+  function daysBetween(aStr, bStr) {
+    return Math.round((parseDate(bStr) - parseDate(aStr)) / MS_PER_DAY);
+  }
+
+  /** 加 n 年；2-29 起算且目标年为平年时钳制到 2-28 */
+  function addYears(dateStr, n) {
+    if (!Number.isInteger(n)) throw new Error('年份增量必须为整数');
+    const d = parseDate(dateStr);
+    const origMonth = d.getMonth();
+    d.setFullYear(d.getFullYear() + n);
+    if (d.getMonth() !== origMonth) {
+      // 2-29 → 3-01，钳制回 2-28（setDate(0) = 上月末）
+      d.setDate(0);
+    }
+    return formatDate(d);
+  }
+
+  /** 加 n 天（非负整数） */
+  function addDays(dateStr, n) {
+    if (!Number.isInteger(n) || n < 0) throw new Error('天数必须为非负整数');
+    const d = parseDate(dateStr);
+    d.setDate(d.getDate() + n);
+    return formatDate(d);
+  }
+
+  /** 在 Date 上加 n 个月（目标月天数不足时钳制到月末），返回新 Date */
+  function addMonthsClamped(d, n) {
+    const out = new Date(d);
+    const origDay = out.getDate();
+    out.setDate(1);
+    out.setMonth(out.getMonth() + n);
+    const lastDay = new Date(out.getFullYear(), out.getMonth() + 1, 0).getDate();
+    out.setDate(Math.min(origDay, lastDay));
+    return out;
+  }
+
+  /**
+   * 恋爱时长（日历感知算法）：
+   * 先按周年累加整年、再整月（钳制到月末），剩余天数按日历差值；
+   * 开始日为 date-only，时/分/秒按当日已过时间计。
+   * → { years, months, days, hours, minutes, seconds }
+   */
+  function duration(startStr, now) {
+    if (!(now instanceof Date) || isNaN(now.getTime())) throw new Error('now 必须为有效 Date');
+    const start = parseDate(startStr);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (start > today) throw new Error('开始日期晚于今天');
+
+    let years = 0;
+    let anchor = start;
+    while (true) {
+      const next = new Date(anchor);
+      next.setFullYear(next.getFullYear() + 1);
+      if (next.getMonth() !== anchor.getMonth()) next.setDate(0); // 2-29 钳制
+      if (next > today) break;
+      anchor = next;
+      years++;
+    }
+
+    let months = 0;
+    while (true) {
+      const next = addMonthsClamped(anchor, 1);
+      if (next > today) break;
+      anchor = next;
+      months++;
+    }
+
+    const days = daysBetween(formatDate(anchor), formatDate(today));
+    return {
+      years,
+      months,
+      days,
+      hours: now.getHours(),
+      minutes: now.getMinutes(),
+      seconds: now.getSeconds(),
+    };
+  }
+
+  /**
+   * 纪念日下一次发生（按每年循环）：
+   * 输入纪念日 'YYYY-MM-DD'（取月-日）与今天 'YYYY-MM-DD'；
+   * 2-29 型纪念日遇平年顺延至 3-01（new Date(y,1,29) 自动滚动，与策略一致）。
+   * → { date: 'YYYY-MM-DD', daysLeft: 天数, isToday: 是否今天到期 }
+   */
+  function nextOccurrence(anniversaryStr, todayStr) {
+    const ann = parseDate(anniversaryStr);
+    const today = parseDate(todayStr);
+
+    function occurrenceIn(year) {
+      // 平年的 2-29 由 JS 自动滚动为 3-01
+      return new Date(year, ann.getMonth(), ann.getDate());
+    }
+
+    let candidate = occurrenceIn(today.getFullYear());
+    if (candidate < today) {
+      candidate = occurrenceIn(today.getFullYear() + 1);
+    }
+    const daysLeft = daysBetween(formatDate(today), formatDate(candidate));
+    return { date: formatDate(candidate), daysLeft, isToday: daysLeft === 0 };
+  }
+
+  const TimeMath = {
+    parseDate,
+    formatDate,
+    daysBetween,
+    addYears,
+    addDays,
+    duration,
+    nextOccurrence,
+  };
+
+  global.LM = global.LM || {};
+  global.LM.TimeMath = TimeMath;
+  if (typeof module !== 'undefined' && module.exports) module.exports = TimeMath;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/**
+ * validate.js —— 纯逻辑：导入 JSON 校验（design.md §6.2）
+ * 双环境导出：浏览器挂 LM.Validate，Node 中 module.exports 供测试
+ * 校验过程不修改输入对象；失败返回具体原因。
+ */
+(function (global) {
+  'use strict';
+
+  const SCHEMA_VERSION = 1;
+
+  function isPlainObject(v) {
+    return typeof v === 'object' && v !== null && !Array.isArray(v);
+  }
+
+  /**
+   * 校验导入文件 → { ok: true } 或 { ok: false, reason: string }
+   */
+  function validateImport(input) {
+    if (!isPlainObject(input)) {
+      return { ok: false, reason: '文件格式错误：根节点必须是对象' };
+    }
+    if (input.app !== 'lovemark') {
+      return { ok: false, reason: '这不是「爱记」的备份文件' };
+    }
+    if (
+      typeof input.schemaVersion !== 'number' ||
+      !Number.isInteger(input.schemaVersion) ||
+      input.schemaVersion < 1 ||
+      input.schemaVersion > SCHEMA_VERSION
+    ) {
+      return { ok: false, reason: `不支持的备份版本: ${input.schemaVersion}` };
+    }
+    if (!isPlainObject(input.data)) {
+      return { ok: false, reason: '备份缺少 data 数据' };
+    }
+    if (input.data.photos !== undefined) {
+      if (!Array.isArray(input.data.photos)) {
+        return { ok: false, reason: 'photos 必须是数组' };
+      }
+      for (let i = 0; i < input.data.photos.length; i++) {
+        const p = input.data.photos[i];
+        if (!isPlainObject(p) || typeof p.thumb !== 'string' || typeof p.full !== 'string') {
+          return { ok: false, reason: `第 ${i + 1} 张照片数据不完整（缺少缩略图或原图）` };
+        }
+      }
+    }
+    return { ok: true };
+  }
+
+  const Validate = { SCHEMA_VERSION, validateImport };
+
+  global.LM = global.LM || {};
+  global.LM.Validate = Validate;
+  if (typeof module !== 'undefined' && module.exports) module.exports = Validate;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/**
+ * quotes.js —— 纯逻辑：情话语料库与每日一句索引
+ * 双环境导出：浏览器挂 LM.Quotes，Node 中 module.exports 供测试
+ * 每日一句按「日期 → 自 1970-01-01(UTC) 的天数 → 模长」确定性选取，同一天恒定。
+ */
+(function (global) {
+  'use strict';
+
+  const QUOTES = [
+    '遇见你之后，我才发现所有的等待都有意义。',
+    '你的名字，是我写过最短的情书。',
+    '世界很大，我只想和你回家。',
+    '今天的风很温柔，像你看向我的时候。',
+    '和你在一起的每一天，都值得被记住。',
+    '我喜欢你，不止今天，还有明天和以后。',
+    '你是我平淡生活里的星光。',
+    '想和你分享每一场日落。',
+    '四季更替，我依然喜欢你。',
+    '有你在，连雨天都变得可爱。',
+    '我的未来里，每一步都有你。',
+    '遇见你是意外，爱上你是必然。',
+    '你一笑，我的世界就亮了。',
+    '想牵着你的手，从清晨走到黄昏。',
+    '爱不是惊天动地，是每一个日常都有你。',
+    '你是我藏在心底最柔软的秘密。',
+    '和你一起变老，是我最期待的事。',
+    '所有美好的词语，都不及你。',
+    '我喜欢这世界，更喜欢你。',
+    '你是我的光，也是我的方向。',
+    '想你了，风替我把这句话带给你。',
+    '时间会证明，我爱你不是说说而已。',
+    '你出现之后，我的每一天都有了盼头。',
+    '爱就是把你的名字，写进我的未来。',
+    '世界纷扰，只有你让我安心。',
+    '和你一起走过的路，都是风景。',
+    '我喜欢你，认真且怂，从一而终。',
+    '你的晚安，是我一天的句号。',
+    '来日方长，我们慢慢爱。',
+    '此生有你，足矣。',
+    '你是我明目张胆的偏爱。',
+    '陪你度过漫长岁月，是我最浪漫的事。',
+  ];
+
+  const MS_PER_DAY = 86400000;
+
+  /** 'YYYY-MM-DD' → 自 1970-01-01(UTC) 的天数（确定性索引基准） */
+  function dayNumber(dateStr) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr));
+    if (!m) throw new Error(`非法日期格式: ${dateStr}`);
+    return Math.floor(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) / MS_PER_DAY);
+  }
+
+  /** 按日期确定性取一句 → { index, quote }（同一天恒定） */
+  function quoteForDate(dateStr) {
+    const n = dayNumber(dateStr) % QUOTES.length;
+    const index = (n + QUOTES.length) % QUOTES.length; // 防负余数
+    return { index, quote: QUOTES[index] };
+  }
+
+  /** 随机取一句 */
+  function randomQuote() {
+    return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  }
+
+  const Quotes = { QUOTES, dayNumber, quoteForDate, randomQuote };
+
+  global.LM = global.LM || {};
+  global.LM.Quotes = Quotes;
+  if (typeof module !== 'undefined' && module.exports) module.exports = Quotes;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/**
+ * db.js —— IndexedDB 封装与 localStorage 降级（Promise 化，tech-stack.md §3）
+ * 统一接口：open / get / put / del / getAll / backend
+ * - store 分两类：meta（kv，key 为字符串）与 diaries/photos/anniversaries（keyPath 'id'，key 参数忽略）
+ * - 单条写入，一个事务一条记录，杜绝半写状态；事务/请求失败一律 reject，不静默
+ * - 配额超限（QuotaExceededError）向上抛出，提示文案由 Step 25 负责
+ * - indexedDB 不可用或打开失败 → 自动降级 localStorage（同一套接口）
+ * - debug=1 时注册 LM.debug.forceFallback(on)：强制走降级路径（仅调试，正常路径不可见）
+ */
+(function (global) {
+  'use strict';
+
+  const DB_NAME = 'lovemark';
+  const DB_VERSION = 1;
+  const STORES = ['meta', 'diaries', 'photos', 'anniversaries'];
+  const KEYPATH_STORES = ['diaries', 'photos', 'anniversaries'];
+  const LS_PREFIX = 'lovemark:';
+  const LS_FORCE_KEY = 'lovemark:debug:forceFallback';
+
+  /* ================= 调试开关（仅 debug=1 可见） ================= */
+
+  const DEBUG = (function () {
+    if (typeof window === 'undefined') return false;
+    try {
+      return new URLSearchParams(window.location.search).get('debug') === '1';
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  function fallbackForced() {
+    if (!DEBUG) return false;
+    try {
+      return localStorage.getItem(LS_FORCE_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  global.LM = global.LM || {};
+  global.LM.isDebug = DEBUG; // 供其他模块判断调试模式（如动作日志）
+  if (DEBUG) {
+    global.LM.debug = global.LM.debug || {};
+    // 控制台调用：LM.debug.forceFallback(true) 后自动刷新，强制走 localStorage 后端
+    global.LM.debug.forceFallback = (on) => {
+      localStorage.setItem(LS_FORCE_KEY, on ? '1' : '0');
+      window.location.reload();
+    };
+    // 时间偏移（毫秒）：LM.debug.setTimeOffset(60000) → 全站计时/日期功能整体偏移 1 分钟
+    global.LM.debug.setTimeOffset = (ms) => {
+      global.LM.timeOffset = Number(ms) || 0;
+      if (global.LM.ui) global.LM.ui.render();
+    };
+    // 模拟一次配额超限：走应用统一错误提示链路（验证 Step 25 专属文案）
+    global.LM.debug.simulateQuota = () => {
+      if (global.LM.ui && global.LM.ui.reportError) {
+        global.LM.ui.reportError(new DOMException('模拟配额超限', 'QuotaExceededError'));
+      }
+    };
+  }
+
+  /* ================= IndexedDB 实现 ================= */
+
+  let idb = null;
+  let backend = null; // 'indexeddb' | 'localStorage'
+
+  function openIDB() {
+    return new Promise((resolve, reject) => {
+      let req;
+      try {
+        req = indexedDB.open(DB_NAME, DB_VERSION);
+      } catch (e) {
+        reject(e);
+        return;
+      }
+      req.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        // 版本迁移分支：未来升级在此追加 case（tech-stack.md §3.2）
+        switch (e.oldVersion) {
+          case 0: {
+            d.createObjectStore('meta');
+            const diaries = d.createObjectStore('diaries', { keyPath: 'id' });
+            diaries.createIndex('date', 'date', { unique: false });
+            const photos = d.createObjectStore('photos', { keyPath: 'id' });
+            photos.createIndex('date', 'date', { unique: false });
+            d.createObjectStore('anniversaries', { keyPath: 'id' });
+            break;
+          }
+          // case 1: v2 迁移
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('IndexedDB 打开失败'));
+      req.onblocked = () => reject(new Error('IndexedDB 被其他标签页阻塞'));
+    });
+  }
+
+  async function idbGet(store, key) {
+    return new Promise((resolve, reject) => {
+      const t = idb.transaction(store, 'readonly');
+      const req = t.objectStore(store).get(key);
+      req.onsuccess = () => resolve(req.result ?? null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function idbPut(store, key, value) {
+    return new Promise((resolve, reject) => {
+      const t = idb.transaction(store, 'readwrite');
+      const os = t.objectStore(store);
+      // keyPath 存储的键取自 value.id；meta（kv）用显式 key。两者混用会抛 DataError
+      const req = KEYPATH_STORES.includes(store) ? os.put(value) : os.put(value, key);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+      t.onabort = () => reject(t.error || new Error('写入事务中止'));
+    });
+  }
+
+  async function idbDel(store, key) {
+    return new Promise((resolve, reject) => {
+      const t = idb.transaction(store, 'readwrite');
+      const req = t.objectStore(store).delete(key);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+      t.onabort = () => reject(t.error || new Error('删除事务中止'));
+    });
+  }
+
+  async function idbGetAll(store) {
+    return new Promise((resolve, reject) => {
+      const t = idb.transaction(store, 'readonly');
+      const req = t.objectStore(store).getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function idbClear(store) {
+    return new Promise((resolve, reject) => {
+      const t = idb.transaction(store, 'readwrite');
+      const req = t.objectStore(store).clear();
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+      t.onabort = () => reject(t.error || new Error('清空事务中止'));
+    });
+  }
+
+  /* ================= localStorage 降级实现 ================= */
+
+  function lsLoad(store) {
+    try {
+      const raw = localStorage.getItem(LS_PREFIX + store);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch (e) {
+      // 数据损坏或不可用 → 回退默认形状
+    }
+    return KEYPATH_STORES.includes(store) || !STORES.includes(store) ? [] : {};
+  }
+
+  function lsSave(store, data) {
+    // 配额超限时抛 QuotaExceededError，向上传播，由调用方提示
+    localStorage.setItem(LS_PREFIX + store, JSON.stringify(data));
+  }
+
+  function lsGet(store, key) {
+    const data = lsLoad(store);
+    if (Array.isArray(data)) return data.find((x) => x && x.id === key) ?? null;
+    return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null;
+  }
+
+  function lsPut(store, key, value) {
+    const data = lsLoad(store);
+    if (Array.isArray(data)) {
+      const i = data.findIndex((x) => x && x.id === value.id);
+      if (i >= 0) data[i] = value;
+      else data.push(value);
+    } else {
+      data[key] = value;
+    }
+    lsSave(store, data);
+  }
+
+  function lsDel(store, key) {
+    const data = lsLoad(store);
+    if (Array.isArray(data)) {
+      const i = data.findIndex((x) => x && x.id === key);
+      if (i >= 0) data.splice(i, 1);
+    } else {
+      delete data[key];
+    }
+    lsSave(store, data);
+  }
+
+  function lsGetAll(store) {
+    const data = lsLoad(store);
+    return Array.isArray(data) ? data.slice() : Object.values(data);
+  }
+
+  /* ================= 统一入口 ================= */
+
+  async function ensureOpen() {
+    if (backend) return;
+    if (fallbackForced() || typeof indexedDB === 'undefined') {
+      if (typeof localStorage === 'undefined') {
+        throw new Error('当前环境不支持存储（无 indexedDB 与 localStorage）');
+      }
+      backend = 'localStorage';
+      return;
+    }
+    try {
+      idb = await openIDB();
+      backend = 'indexeddb';
+    } catch (e) {
+      backend = 'localStorage';
+    }
+  }
+
+  const db = {
+    /** 初始化并选择后端（幂等，可显式预热） */
+    open: ensureOpen,
+    /** 读单条 → value | null */
+    async get(store, key) {
+      await ensureOpen();
+      return backend === 'indexeddb' ? idbGet(store, key) : lsGet(store, key);
+    },
+    /** 写单条；keyPath 存储忽略 key（取 value.id），meta 用显式 key */
+    async put(store, key, value) {
+      await ensureOpen();
+      if (backend === 'indexeddb') return idbPut(store, key, value);
+      lsPut(store, key, value);
+    },
+    /** 删单条 */
+    async del(store, key) {
+      await ensureOpen();
+      if (backend === 'indexeddb') return idbDel(store, key);
+      lsDel(store, key);
+    },
+    /** 读全量（kv store 返回 values 数组） */
+    async getAll(store) {
+      await ensureOpen();
+      return backend === 'indexeddb' ? idbGetAll(store) : lsGetAll(store);
+    },
+    /** 清空整个 store（「覆盖导入」「清空数据」「回滚」共用） */
+    async clear(store) {
+      await ensureOpen();
+      if (backend === 'indexeddb') return idbClear(store);
+      localStorage.removeItem(LS_PREFIX + store);
+    },
+    /** 当前后端：'indexeddb' | 'localStorage'（未初始化时为 null） */
+    backend: () => backend,
+  };
+
+  global.LM = global.LM || {};
+  global.LM.db = db;
+  if (typeof module !== 'undefined' && module.exports) module.exports = db;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/**
+ * state.js —— 内存状态与渲染调度（tech-stack.md §4）
+ * 单一状态对象：UI 只读它；修改后调用 LM.ui.render() 重绘当前页。
+ * 数据加载/写入统一走 LM.db，本对象只做内存镜像。
+ */
+(function (global) {
+  'use strict';
+
+  const state = {
+    page: 'home',      // 当前 Tab：home/diary/photos/anniversaries/settings
+    profile: null,     // { nameA, nameB, avatarA, avatarB, startDate }
+    settings: null,    // { bgType, bgValue, particles, targetDate }
+    diaries: [],
+    photos: [],
+    anniversaries: [],
+    dailyQuote: { index: 0, quote: '' }, // 每日一句（启动时按日期确定性初始化）
+    filters: { mood: null, keyword: '' }, // 日记筛选（仅会话内，不持久化）
+    wizard: null,      // 向导草稿 { step, nameA, nameB, avatarA, avatarB, startDate, bgId }
+    form: null,        // 当前打开表单的草稿 + finish 回调（单表单制）
+    lightbox: null,    // 相册预览状态 { list, idx }
+  };
+
+  global.LM = global.LM || {};
+  global.LM.VERSION = '1.0.0';
+  global.LM.timeOffset = 0; // 仅 debug=1 下经 LM.debug.setTimeOffset 修改（测试用）
+
+  /** 统一取当前时间（含调试偏移） */
+  global.LM.now = () => new Date(Date.now() + (global.LM.timeOffset || 0));
+
+  /** 今天的 'YYYY-MM-DD' */
+  global.LM.todayStr = () => global.LM.TimeMath.formatDate(global.LM.now());
+
+  /** ID 生成：前缀 + 时间戳 + 随机段 */
+  global.LM.genId = (prefix) => `${prefix}${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
+
+  global.LM.state = state;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/**
+ * ui.js —— 页面渲染、事件委托、Toast、弹窗、确认框、各功能模块
+ * 规则（tech-stack.md §4/§10）：
+ * - 用户内容插入模板前必须过 esc()，其余内容不转义
+ * - 文案收口 STRINGS 表；document 级事件委托（click/change/input，data-action 分发）
+ * - 表单为「单表单制」：草稿存 LM.state.form，ACTIONS 统一读写
+ */
+(function (global) {
+  'use strict';
+
+  const LM = global.LM;
+  const TimeMath = LM.TimeMath;
+  const Quotes = LM.Quotes;
+
+  /* ================= 常量与文案 ================= */
+
+  const MOODS = ['😍', '🥰', '😘', '😄', '😊', '😐', '😢', '😡'];
+  const WEATHERS = ['☀️', '🌤️', '☁️', '🌧️', '⛈️', '❄️', '🌙', '🌈'];
+
+  // 6 套背景预设（Step 11 定义，向导与设置页共用）
+  const BG_PRESETS = [
+    { id: 'preset-1', name: '粉白渐变', css: 'linear-gradient(160deg, #FFF0F5, #FFE4EC)' },
+    { id: 'preset-2', name: '紫粉渐变', css: 'linear-gradient(160deg, #F5E6FF, #FFD6EC)' },
+    { id: 'preset-3', name: '蜜桃日落', css: 'linear-gradient(160deg, #FFE8D6, #FFC3C3)' },
+    { id: 'preset-4', name: '樱花纹理', css: 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.6) 0 12px, transparent 13px), radial-gradient(circle at 80% 40%, rgba(255,182,193,0.35) 0 18px, transparent 19px), radial-gradient(circle at 50% 75%, rgba(255,255,255,0.5) 0 10px, transparent 11px), linear-gradient(160deg, #FFE4EC, #FFD6E0)' },
+    { id: 'preset-5', name: '奶油纯色', css: 'linear-gradient(160deg, #FFF8F0, #FFEFE0)' },
+    { id: 'preset-6', name: '星空粉夜', css: 'linear-gradient(160deg, #2B1B33, #5C3A4E)', dark: true },
+  ];
+
+  const ANNIV_TYPES = [
+    { key: 'anniversary', label: '周年', icon: '🎂' },
+    { key: 'birthday', label: '生日', icon: '🎁' },
+    { key: 'milestone', label: '里程碑', icon: '📍' },
+  ];
+
+  // 快速模板（Step 18）：日期按 profile.startDate 计算
+  const ANNIV_TEMPLATES = [
+    { key: '100', label: '100 天', date: (s) => TimeMath.addDays(s, 100) },
+    { key: '200', label: '200 天', date: (s) => TimeMath.addDays(s, 200) },
+    { key: '300', label: '300 天', date: (s) => TimeMath.addDays(s, 300) },
+    { key: '520', label: '520 天', date: (s) => TimeMath.addDays(s, 520) },
+    { key: '999', label: '999 天', date: (s) => TimeMath.addDays(s, 999) },
+    { key: 'year', label: '一周年', date: (s) => TimeMath.addYears(s, 1) },
+  ];
+
+  const STRINGS = {
+    pageHome: '首页',
+    pageDiary: '日记',
+    pagePhotos: '相册',
+    pageAnniversaries: '纪念日',
+    pageSettings: '设置',
+    fabWrite: '写日记',
+    together: '在一起',
+    dailyQuote: '每日一句 💌',
+    quoteNext: '换一句',
+    recentDiaries: '最近日记',
+    viewAll: '查看全部',
+    noDiariesRecent: '还没有日记，写下第一篇吧',
+    noDiaries: '还没有日记，点右下角开始记录吧 💌',
+    filterAll: '全部',
+    searchPlaceholder: '搜索标题或正文…',
+    filterEmpty: '没有符合条件的日记',
+    diaryNew: '写日记',
+    diaryEditTitle: '编辑日记',
+    diaryTitlePlaceholder: '标题（选填）',
+    diaryContentPlaceholder: '写点什么…',
+    diaryDateLabel: '日期',
+    diaryMoodLabel: '心情',
+    diaryWeatherLabel: '天气',
+    diarySave: '保存',
+    diaryDelete: '删除',
+    diaryCancel: '取消',
+    diaryContentRequired: '正文不能为空',
+    diaryDeleteConfirm: '确定删除这篇日记吗？删除后不可恢复',
+    saved: '已保存',
+    updated: '已更新',
+    deleted: '已删除',
+    photosEmpty: '还没有照片，点右上角 + 上传吧 📷',
+    photoCaptionTitle: '照片说明',
+    photoCaptionPlaceholder: '写点什么…（可跳过）',
+    photoCaptionSkip: '跳过',
+    photoUploaded: (n) => `已保存 ${n} 张照片`,
+    photoSkippedNonImage: '已跳过非图片文件',
+    photoFailed: '一张图片处理失败，已跳过',
+    photoDeleteConfirm: '确定删除这张照片吗？删除后不可恢复',
+    photoNoCaption: '（无说明）',
+    annivEmpty: '还没有纪念日，用下方模板快速添加吧 🎂',
+    annivAdd: '添加纪念日',
+    annivQuick: '快速添加',
+    annivNamePlaceholder: '纪念日名称（必填）',
+    annivDateLabel: '纪念日日期',
+    annivTypeLabel: '类型',
+    annivRemindLabel: '提前提醒天数（0~365，0 为当天）',
+    annivNameRequired: '名称不能为空',
+    annivDeleteConfirm: '确定删除这个纪念日吗？',
+    annivToday: '就是今天 🎉',
+    annivDaysLeft: (n) => `还有 ${n} 天`,
+    annivReminding: '提前提醒',
+    annivOccurrence: (d) => `下次：${d}`,
+    wizardWelcomeTitle: '欢迎来到爱记 💕',
+    wizardWelcomeDesc: '记录你们相爱的每一天，让时间见证一切。',
+    wizardStart: '开始',
+    wizardStepNames: '你们怎么称呼彼此？',
+    wizardStepDate: '恋爱从哪一天开始？',
+    wizardStepBg: '挑一个喜欢的背景',
+    wizardAvatarHint: '点击上方圆圈上传头像（可选）',
+    wizardNext: '下一步',
+    wizardBack: '上一步',
+    wizardFinish: '完成',
+    wizardSkipBg: '跳过，用默认背景',
+    wizardNamesRequired: '请填写双方昵称',
+    wizardDateFuture: '开始日期不能晚于今天',
+    wizardDoneToast: '欢迎来到爱记 💕',
+    settingsProfile: '情侣资料',
+    settingsProfileEdit: '编辑',
+    settingsProfileSub: (a, b, d) => `${a} · ${b}（开始于 ${d}）`,
+    settingsBg: '背景设置',
+    settingsBgUpload: '上传图片',
+    settingsEffects: '特效',
+    settingsParticles: '爱心花瓣粒子',
+    settingsBackup: '数据备份',
+    settingsBackupBtn: '备份',
+    settingsBackupSoon: '导出 / 导入功能将在后续步骤实现',
+    settingsAbout: '关于',
+    settingsAboutLine: '爱记 LoveMark · 单文件 · 数据存于本机',
+    settingsParticlesOn: '已开启爱心花瓣粒子',
+    settingsParticlesOff: '已关闭爱心花瓣粒子',
+    settingsBgChanged: '背景已更换',
+    profileNamesRequired: '请填写双方昵称',
+    profileDateFuture: '开始日期不能晚于今天',
+    profileDateChangeConfirm: '修改开始日期后，所有计时会重新计算。确定保存吗？',
+    bgChanged: '背景已更换',
+    errorGeneric: '出错了，操作已回退',
+    quotaExceeded: '存储空间不足，请清理相册或导出备份后删除部分内容',
+    fallbackBanner: '当前为受限存储模式（容量较小），请及时备份数据',
+    exportToast: '备份文件包含私密内容，请妥善保管',
+    exportDone: '已导出备份文件',
+    exportLargeConfirm: '备份文件较大（约超过 100MB），仍要导出吗？',
+    importChoose: '选择导入方式：合并 = 同名记录以备份为准；覆盖 = 清空现有数据后导入',
+    importMerge: '合并',
+    importOverwrite: '覆盖',
+    importCancel: '取消',
+    importDone: '导入成功',
+    importFailed: '导入失败，已回滚到导入前的状态',
+    importInvalidJson: '文件不是有效的 JSON，已拒绝导入',
+    importReadFailed: '文件读取失败',
+    clearDataConfirm1: '确定要清空全部数据吗？此操作不可恢复',
+    clearDataConfirm2: '再次确认：清空后所有日记、照片、纪念日都会丢失！',
+    clearDone: '已清空全部数据',
+    confirmTitle: '请确认',
+    confirmOk: '确定',
+    confirmCancel: '取消',
+    backup: '备份',
+  };
+
+  /** 转义用户内容，防 XSS（tech-stack.md §4） */
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+  }
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const typeIcon = (t) => (ANNIV_TYPES.find((x) => x.key === t) || ANNIV_TYPES[0]).icon;
+
+  /* ================= 通用小工具 ================= */
+
+  function sortDesc(list) {
+    return [...list].sort((a, b) => (b.date === a.date ? b.createdAt - a.createdAt : (b.date < a.date ? -1 : 1)));
+  }
+
+  /* ================= 背景（Step 20） ================= */
+
+  function applyBackground() {
+    const s = LM.state.settings;
+    if (!s) return;
+    document.body.classList.remove('bg-dark');
+    let css;
+    if (s.bgType === 'custom' && s.bgValue) {
+      // 自定义图：cover + 半透明白遮罩保证可读（design.md §8.2）
+      css = `linear-gradient(rgba(255,255,255,0.35), rgba(255,255,255,0.35)), url("${s.bgValue}") center / cover fixed`;
+    } else {
+      const preset = BG_PRESETS.find((p) => p.id === s.bgValue) || BG_PRESETS[0];
+      css = `${preset.css} fixed`;
+      if (preset.dark) document.body.classList.add('bg-dark');
+    }
+    document.body.style.background = css;
+  }
+
+  function bgGridHtml(current) {
+    return BG_PRESETS.map((p) => `
+      <button type="button" class="bg-cell ${current === p.id ? 'bg-on' : ''}" data-action="bg-select" data-bg="${p.id}" style="background: ${p.css}">
+        <span class="bg-name">${esc(p.name)}</span>
+      </button>`).join('');
+  }
+
+  /* ================= 页面渲染 ================= */
+
+  function avatarHtml(dataUrl, key) {
+    return `<div class="avatar">${dataUrl ? `<img src="${dataUrl}" alt="">` : `<span class="avatar-ph">${key === 0 ? '🌸' : '🌻'}</span>`}</div>`;
+  }
+
+  function diaryTitle(d) {
+    return d.title.trim() || d.content.split('\n')[0].slice(0, 20);
+  }
+
+  function diaryExcerpt(d) {
+    if (d.title.trim()) return d.content;
+    const lines = d.content.split('\n');
+    lines.shift();
+    return lines.join('\n');
+  }
+
+  function anniversaryOverview() {
+    const today = LM.todayStr();
+    return LM.state.anniversaries.map((a) => ({ a, occ: TimeMath.nextOccurrence(a.date, today) }));
+  }
+
+  function nextAnniv(overview) {
+    if (!overview.length) return null;
+    return [...overview].sort((x, y) => {
+      if (x.occ.isToday !== y.occ.isToday) return x.occ.isToday ? -1 : 1;
+      if (x.occ.daysLeft !== y.occ.daysLeft) return x.occ.daysLeft - y.occ.daysLeft;
+      return x.occ.date < y.occ.date ? -1 : 1;
+    })[0];
+  }
+
+  function homeAnnivCardHtml() {
+    const top = nextAnniv(anniversaryOverview());
+    if (!top) return '';
+    const { a, occ } = top;
+    const remind = !occ.isToday && a.remindDays > 0 && occ.daysLeft <= a.remindDays;
+    return `
+      <div class="card anniv-card ${occ.isToday ? 'anniv-due' : ''}" data-action="goto-anniv">
+        <span class="anniv-icon">${typeIcon(a.type)}</span>
+        <div class="anniv-card-main">
+          <div class="anniv-card-name">${esc(a.name)} ${remind ? `<span class="badge">${STRINGS.annivReminding}</span>` : ''}</div>
+          <div class="anniv-card-sub">${occ.isToday ? STRINGS.annivToday : STRINGS.annivDaysLeft(occ.daysLeft)} · ${esc(occ.date)}</div>
+        </div>
+      </div>`;
+  }
+
+  function recentDiariesHtml() {
+    const list = sortDesc(LM.state.diaries).slice(0, 3);
+    if (!list.length) return `<p class="page-card-text">${STRINGS.noDiariesRecent}</p>`;
+    return list.map((d) => `
+      <div class="recent-card" data-action="diary-open" data-id="${d.id}">
+        <span class="recent-mood">${d.mood}</span>
+        <div class="recent-main">
+          <div class="recent-title">${esc(diaryTitle(d))}</div>
+          <div class="recent-sub">${esc(d.date)} ${d.weather}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  const PAGES = {
+    home: () => {
+      const p = LM.state.profile;
+      return `
+      <div class="page-anim">
+        <div class="home-head">
+          ${avatarHtml(p.avatarA, 0)}
+          <div class="heart-pulse">❤️</div>
+          ${avatarHtml(p.avatarB, 1)}
+        </div>
+        <div class="home-names">${esc(p.nameA)} <span class="dot">·</span> ${esc(p.nameB)}</div>
+        <div class="card timer-card">
+          <div class="timer-label">${STRINGS.together}</div>
+          <div class="timer-main" id="tm-main">—</div>
+          <div class="timer-sub" id="tm-sub">—</div>
+        </div>
+        <div class="card quote-card">
+          <div class="quote-label">${STRINGS.dailyQuote}</div>
+          <p class="quote-text">${esc(LM.state.dailyQuote.quote)}</p>
+          <button type="button" class="btn btn-ghost btn-sm" data-action="quote-next">${STRINGS.quoteNext}</button>
+        </div>
+        ${homeAnnivCardHtml()}
+        <div class="home-recent">
+          <div class="home-recent-head">
+            <span>${STRINGS.recentDiaries}</span>
+            <button type="button" class="link-btn" data-action="goto-diary">${STRINGS.viewAll} &gt;</button>
+          </div>
+          ${recentDiariesHtml()}
+        </div>
+      </div>`;
+    },
+
+    diary: () => {
+      const f = LM.state.filters;
+      return `
+      <div class="page-anim">
+        <h1 class="page-title">${STRINGS.pageDiary}</h1>
+        <div class="filter-chips chips">
+          <button type="button" class="chip ${f.mood === null ? 'chip-on' : ''}" data-action="filter-mood" data-mood="">${STRINGS.filterAll}</button>
+          ${MOODS.map((m) => `<button type="button" class="chip ${f.mood === m ? 'chip-on' : ''}" data-action="filter-mood" data-mood="${m}">${m}</button>`).join('')}
+        </div>
+        <input class="input search-input" type="search" placeholder="${STRINGS.searchPlaceholder}" value="${esc(f.keyword)}" data-action="filter-search">
+        <div id="diary-results">${diaryResultsHtml()}</div>
+      </div>`;
+    },
+
+    photos: () => {
+      const list = photoList();
+      const cells = list.map((p) => {
+        // 双形态：IDB 后端存 Blob（objectURL 并回收）；降级后端存 dataURL（直接使用）
+        const isBlob = p.thumb instanceof Blob;
+        const url = isBlob ? URL.createObjectURL(p.thumb) : p.thumb;
+        if (isBlob) gridUrls.push(url);
+        return `<div class="photo-cell" data-action="photo-open" data-id="${p.id}"><img src="${url}" alt="" loading="lazy"></div>`;
+      }).join('');
+      return `
+      <div class="page-anim">
+        <h1 class="page-title">${STRINGS.pagePhotos}</h1>
+        <div class="photo-grid">
+          <label class="photo-cell photo-upload-cell" for="photo-input">📷
+            <input id="photo-input" type="file" class="hidden-input" data-action="photo-upload" multiple accept="image/*">
+          </label>
+          ${cells}
+        </div>
+        ${list.length ? '' : `<p class="page-card-text">${STRINGS.photosEmpty}</p>`}
+      </div>`;
+    },
+
+    anniversaries: () => {
+      const overview = anniversaryOverview();
+      const top = nextAnniv(overview);
+      return `
+      <div class="page-anim">
+        <h1 class="page-title">${STRINGS.pageAnniversaries}</h1>
+        ${top ? `
+        <div class="card anniv-hero ${top.occ.isToday ? 'anniv-due' : ''}">
+          <div class="anniv-hero-icon">${typeIcon(top.a.type)}</div>
+          <div class="anniv-hero-name">${esc(top.a.name)}</div>
+          <div class="anniv-hero-count">${top.occ.isToday ? STRINGS.annivToday : STRINGS.annivDaysLeft(top.occ.daysLeft)}</div>
+          <div class="anniv-hero-date">${STRINGS.annivOccurrence(top.occ.date)}</div>
+        </div>` : `<div class="card page-card">${STRINGS.annivEmpty}</div>`}
+        <div class="card set-card">
+          <div class="set-row">
+            <h3 class="set-title">${STRINGS.annivQuick}</h3>
+            <button type="button" class="btn btn-ghost btn-sm" data-action="anniv-add">${STRINGS.annivAdd}</button>
+          </div>
+          <div class="chips">
+            ${ANNIV_TEMPLATES.map((t) => `<button type="button" class="chip" data-action="anniv-template" data-n="${t.key}">${t.label}</button>`).join('')}
+          </div>
+        </div>
+        <div class="anniv-list">
+          ${overview.map(({ a, occ }) => `
+          <div class="card anniv-row" data-action="anniv-edit" data-id="${a.id}">
+            <span class="anniv-icon">${typeIcon(a.type)}</span>
+            <div class="anniv-row-main">
+              <div class="anniv-row-name">${esc(a.name)} ${occ.isToday ? `<span class="badge">${STRINGS.annivToday}</span>` : ''}</div>
+              <div class="anniv-row-sub">${esc(a.date)} · ${occ.isToday ? STRINGS.annivToday : STRINGS.annivDaysLeft(occ.daysLeft)}${a.remindDays > 0 ? ` · 提前 ${a.remindDays} 天提醒` : ''}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    },
+
+    settings: () => {
+      const p = LM.state.profile;
+      const s = LM.state.settings;
+      return `
+      <div class="page-anim">
+        <h1 class="page-title">${STRINGS.pageSettings}</h1>
+        <div class="card set-card">
+          <h3 class="set-title">${STRINGS.settingsProfile}</h3>
+          <div class="set-row">
+            <div class="set-info">
+              <div class="set-main">${esc(p.nameA)} · ${esc(p.nameB)}</div>
+              <div class="set-sub">开始于 ${esc(p.startDate)}</div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-action="profile-edit">${STRINGS.settingsProfileEdit}</button>
+          </div>
+        </div>
+        <div class="card set-card">
+          <h3 class="set-title">${STRINGS.settingsBg}</h3>
+          <div class="bg-grid">${bgGridHtml(s.bgType === 'preset' ? s.bgValue : null)}</div>
+          <label class="btn btn-ghost btn-sm" for="bg-input">${STRINGS.settingsBgUpload}</label>
+          <input id="bg-input" type="file" class="hidden-input" data-action="bg-upload" accept="image/*">
+        </div>
+        <div class="card set-card">
+          <h3 class="set-title">${STRINGS.settingsEffects}</h3>
+          <div class="set-row">
+            <span>${STRINGS.settingsParticles}</span>
+            <button type="button" class="switch ${s.particles ? 'switch-on' : ''}" data-action="toggle-particles" aria-label="${STRINGS.settingsParticles}"></button>
+          </div>
+        </div>
+        <div class="card set-card">
+          <h3 class="set-title">${STRINGS.settingsBackup}</h3>
+          <div class="set-row">
+            <span>导出 JSON 备份文件</span>
+            <button type="button" class="btn btn-ghost btn-sm" data-action="export-data">导出</button>
+          </div>
+          <div class="set-row">
+            <span>从备份文件恢复</span>
+            <label class="btn btn-ghost btn-sm" for="import-input">导入</label>
+            <input id="import-input" type="file" class="hidden-input" data-action="import-data" accept="application/json,.json">
+          </div>
+          <div class="set-row">
+            <span>清空全部数据</span>
+            <button type="button" class="btn btn-danger btn-sm" data-action="clear-data">清空</button>
+          </div>
+        </div>
+        <div class="card set-card">
+          <h3 class="set-title">${STRINGS.settingsAbout}</h3>
+          <p class="set-sub">${STRINGS.settingsAboutLine} v${LM.VERSION}</p>
+        </div>
+      </div>`;
+    },
+  };
+
+  function pageShell(title, note) {
+    return `
+      <div class="page-anim">
+        <h1 class="page-title">${esc(title)}</h1>
+        <div class="card page-card">${esc(note)}</div>
+      </div>`;
+  }
+
+  /* ================= 日记渲染（Step 14~15） ================= */
+
+  function filteredDiaries() {
+    const f = LM.state.filters;
+    let list = sortDesc(LM.state.diaries);
+    if (f.mood) list = list.filter((d) => d.mood === f.mood);
+    if (f.keyword) {
+      const kw = f.keyword.toLowerCase();
+      list = list.filter((d) => d.title.toLowerCase().includes(kw) || d.content.toLowerCase().includes(kw));
+    }
+    return list;
+  }
+
+  function diaryResultsHtml() {
+    const list = filteredDiaries();
+    if (!list.length) return `<p class="page-card-text">${LM.state.diaries.length ? STRINGS.filterEmpty : STRINGS.noDiaries}</p>`;
+    // 按日期归组（倒序）
+    const groups = [];
+    for (const d of list) {
+      const g = groups[groups.length - 1];
+      if (g && g.date === d.date) g.items.push(d);
+      else groups.push({ date: d.date, items: [d] });
+    }
+    return `<div class="timeline">
+      ${groups.map((g) => `
+      <div class="tl-day">
+        <div class="tl-date">${esc(g.date)} · ${g.items.length} 篇</div>
+        ${g.items.map((d) => `
+        <div class="card diary-card" data-action="diary-open" data-id="${d.id}">
+          <div class="diary-card-head">
+            <span class="diary-mood">${d.mood}</span>
+            <div class="diary-card-main">
+              <div class="diary-title">${esc(diaryTitle(d))}</div>
+              <div class="diary-excerpt">${esc(diaryExcerpt(d))}</div>
+              <div class="diary-meta">${d.weather} ${esc(d.date)}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  function renderDiaryResults() {
+    const box = document.querySelector('#diary-results');
+    if (box) box.innerHTML = diaryResultsHtml();
+  }
+
+  /* ================= 渲染与计时 ================= */
+
+  let timerId = null;
+  let gridUrls = [];
+
+  function revokeGridUrls() {
+    gridUrls.forEach((u) => URL.revokeObjectURL(u));
+    gridUrls = [];
+  }
+
+  function render() {
+    revokeGridUrls();
+    const app = document.querySelector('#app');
+    // 向导模式下渲染向导（此时 profile 尚不存在，不能渲染首页）
+    app.innerHTML = LM.state.wizard ? wizardHtml() : PAGES[LM.state.page]();
+    document.querySelectorAll('#tabBar .tab').forEach((t) => {
+      t.classList.toggle('is-active', t.dataset.page === LM.state.page);
+    });
+    tick();
+  }
+
+  function tick() {
+    if (!LM.state.profile || LM.state.page !== 'home') return;
+    const d = TimeMath.duration(LM.state.profile.startDate, LM.now());
+    const main = document.querySelector('#tm-main');
+    const sub = document.querySelector('#tm-sub');
+    if (main) main.textContent = `${d.years} 年 ${d.months} 个月 ${d.days} 天`;
+    if (sub) sub.textContent = `${pad2(d.hours)}:${pad2(d.minutes)}:${pad2(d.seconds)}`;
+  }
+
+  function startTimer() {
+    stopTimer();
+    timerId = setInterval(tick, 1000);
+    tick();
+  }
+
+  function stopTimer() {
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+  }
+
+  function switchPage(page) {
+    if (!PAGES[page] || page === LM.state.page) return;
+    LM.state.page = page;
+    render();
+  }
+
+  /* ================= 庆祝与撒花（Step 19） ================= */
+
+  const CONFETTI_COLORS = ['#FF9A9E', '#FF7EB3', '#FECFEF', '#FFF0F5', '#E85D75', '#FFD6E0'];
+
+  function confetti() {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'confetti';
+    document.body.appendChild(canvas);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    const c = canvas.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const pieces = Array.from({ length: 90 }, () => ({
+      x: Math.random() * W,
+      y: -20 - Math.random() * H * 0.4,
+      vy: 60 + Math.random() * 120,
+      vx: -30 + Math.random() * 60,
+      size: 6 + Math.random() * 10,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      rot: Math.random() * Math.PI * 2,
+      vr: -3 + Math.random() * 6,
+      heart: Math.random() < 0.5,
+    }));
+    const t0 = performance.now();
+    function frame(ts) {
+      const dt = Math.min(0.05, (ts - (frame.lastTs ?? ts)) / 1000);
+      frame.lastTs = ts;
+      c.clearRect(0, 0, W, H);
+      for (const p of pieces) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rot += p.vr * dt;
+        c.save();
+        c.translate(p.x, p.y);
+        c.rotate(p.rot);
+        c.fillStyle = p.color;
+        if (p.heart) {
+          c.scale(p.size / 16, p.size / 16);
+          c.beginPath();
+          c.moveTo(0, 5);
+          c.bezierCurveTo(-8, -3, -5, -9, 0, -4);
+          c.bezierCurveTo(5, -9, 8, -3, 0, 5);
+          c.fill();
+        } else {
+          c.scale(p.size / 16, p.size / 16);
+          c.beginPath();
+          c.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.restore();
+      }
+      if (ts - t0 < 3000) {
+        requestAnimationFrame(frame);
+      } else {
+        canvas.remove();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  async function celebrateIfDue() {
+    try {
+      if (!LM.state.settings) return;
+      const today = LM.todayStr();
+      const last = await LM.db.get('meta', 'lastCelebrated');
+      if (last === today) return;
+      const due = LM.state.anniversaries.some((a) => TimeMath.nextOccurrence(a.date, today).isToday);
+      if (!due) return;
+      await LM.db.put('meta', 'lastCelebrated', today);
+      confetti();
+    } catch (e) {
+      console.error('[爱记] 到期检查失败', e);
+    }
+  }
+
+  /* ================= 启动 ================= */
+
+  function startApp() {
+    applyBackground();
+    render();
+    startTimer();
+    if (LM.state.settings && LM.state.settings.particles) LM.particles.start();
+    celebrateIfDue();
+  }
+
+  function showWizard() {
+    document.body.classList.add('wizard');
+    stopTimer();
+    LM.particles.stop();
+    LM.state.wizard = { step: 1, nameA: '', nameB: '', avatarA: null, avatarB: null, startDate: LM.todayStr(), bgId: 'preset-1' };
+    render();
+  }
+
+  /* ================= 初始化向导（Step 11） ================= */
+
+  function wizardStepsHtml(w) {
+    return `<div class="wizard-steps">${[1, 2, 3, 4].map((i) => `<span class="ws-dot ${i === w.step ? 'ws-on' : ''}"></span>`).join('')}</div>`;
+  }
+
+  function wizardAvatarCellHtml(w, target) {
+    return `
+      <label class="avatar-upload">
+        <img class="avatar-sm" data-preview="${target}" src="${w[target] || ''}" ${w[target] ? '' : 'hidden'} alt="">
+        <input type="file" class="hidden-input" data-action="wizard-avatar" data-target="${target}" accept="image/*">
+      </label>`;
+  }
+
+  function wizardHtml() {
+    const w = LM.state.wizard;
+    let body = '';
+    if (w.step === 1) {
+      body = `
+        <h2 class="wizard-title">${STRINGS.wizardWelcomeTitle}</h2>
+        <p class="wizard-desc">${STRINGS.wizardWelcomeDesc}</p>
+        <button type="button" class="btn btn-primary" data-action="wizard-start">${STRINGS.wizardStart}</button>`;
+    } else if (w.step === 2) {
+      body = `
+        <h2 class="wizard-title">${STRINGS.wizardStepNames}</h2>
+        <div class="row2 avatar-row">
+          ${wizardAvatarCellHtml(w, 'avatarA')}
+          ${wizardAvatarCellHtml(w, 'avatarB')}
+        </div>
+        <p class="hint">${STRINGS.wizardAvatarHint}</p>
+        <input class="input" data-action="wizard-field" data-field="nameA" placeholder="你的昵称" value="${esc(w.nameA)}" maxlength="12">
+        <input class="input" data-action="wizard-field" data-field="nameB" placeholder="对方的昵称" value="${esc(w.nameB)}" maxlength="12">
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-action="wizard-back">${STRINGS.wizardBack}</button>
+          <button type="button" class="btn btn-primary" data-action="wizard-next" data-step="3">${STRINGS.wizardNext}</button>
+        </div>`;
+    } else if (w.step === 3) {
+      body = `
+        <h2 class="wizard-title">${STRINGS.wizardStepDate}</h2>
+        <input class="input" type="date" data-action="wizard-field" data-field="startDate" value="${esc(w.startDate)}" max="${LM.todayStr()}">
+        <p class="hint" id="wizard-date-hint"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-action="wizard-back">${STRINGS.wizardBack}</button>
+          <button type="button" class="btn btn-primary" data-action="wizard-next" data-step="4">${STRINGS.wizardNext}</button>
+        </div>`;
+    } else {
+      body = `
+        <h2 class="wizard-title">${STRINGS.wizardStepBg}</h2>
+        <div class="bg-grid">${bgGridHtml(w.bgId)}</div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-action="wizard-bg-skip">${STRINGS.wizardSkipBg}</button>
+          <button type="button" class="btn btn-primary" data-action="wizard-finish">${STRINGS.wizardFinish}</button>
+        </div>`;
+    }
+    return `
+      <div class="page-anim wizard-box card">
+        ${wizardStepsHtml(w)}
+        ${body}
+      </div>`;
+  }
+
+  async function finishWizard() {
+    const w = LM.state.wizard;
+    const profile = {
+      nameA: w.nameA.trim(),
+      nameB: w.nameB.trim(),
+      avatarA: w.avatarA,
+      avatarB: w.avatarB,
+      startDate: w.startDate,
+    };
+    const settings = { bgType: 'preset', bgValue: w.bgId || 'preset-1', particles: true, targetDate: null };
+    await LM.db.put('meta', 'profile', profile);
+    await LM.db.put('meta', 'settings', settings);
+    LM.state.profile = profile;
+    LM.state.settings = settings;
+    LM.state.diaries = await LM.db.getAll('diaries');
+    LM.state.photos = await LM.db.getAll('photos');
+    LM.state.anniversaries = await LM.db.getAll('anniversaries');
+    LM.state.dailyQuote = Quotes.quoteForDate(LM.todayStr());
+    LM.state.wizard = null;
+    document.body.classList.remove('wizard');
+    startApp();
+    toast(STRINGS.wizardDoneToast);
+  }
+
+  /* ================= 图片处理（Step 16/20/22 共用） ================= */
+
+  async function decodeImage(file) {
+    if (typeof createImageBitmap === 'function') {
+      try {
+        // 应用 EXIF 方向：手机照片不旋转（implementation.md Step 16）
+        return await createImageBitmap(file, { imageOrientation: 'from-image' });
+      } catch (e) {
+        // 降级到 Image 元素（浏览器解码天然带 EXIF 方向）
+      }
+    }
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('图片解码失败'));
+        img.src = url;
+      });
+      return img;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function drawResized(src, maxEdge) {
+    const w = src.width || src.naturalWidth;
+    const h = src.height || src.naturalHeight;
+    const scale = Math.min(1, maxEdge / Math.max(w, h));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(w * scale));
+    canvas.height = Math.max(1, Math.round(h * scale));
+    canvas.getContext('2d').drawImage(src, 0, 0, canvas.width, canvas.height);
+    return canvas;
+  }
+
+  function canvasToBlob(canvas) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('压缩失败'))), 'image/jpeg', 0.85);
+    });
+  }
+
+  async function compressImage(file) {
+    const src = await decodeImage(file);
+    try {
+      const thumb = await canvasToBlob(drawResized(src, 400));
+      const full = await canvasToBlob(drawResized(src, 1600));
+      return { thumb, full };
+    } finally {
+      if (src.close) src.close();
+    }
+  }
+
+  async function compressToDataURL(file, maxEdge) {
+    const src = await decodeImage(file);
+    try {
+      return drawResized(src, maxEdge).toDataURL('image/jpeg', 0.85);
+    } finally {
+      if (src.close) src.close();
+    }
+  }
+
+  /* ================= 相册（Step 16~17） ================= */
+
+  function photoList() {
+    return [...LM.state.photos].sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  function promptCaption() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (v) => {
+        if (settled) return;
+        settled = true;
+        closeModal(true);
+        LM.state.form = null;
+        resolve(v);
+      };
+      // 说明框复用单表单通道：caption-save/caption-skip 动作经 captionFinish 回传
+      LM.state.form = { captionFinish: finish };
+      openModal(`
+        <h3 class="modal-title">${STRINGS.photoCaptionTitle}</h3>
+        <textarea class="input" rows="3" placeholder="${STRINGS.photoCaptionPlaceholder}" data-caption-text></textarea>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-action="caption-skip">${STRINGS.photoCaptionSkip}</button>
+          <button type="button" class="btn btn-primary" data-action="caption-save">${STRINGS.diarySave}</button>
+        </div>
+      `, { closeOnMask: false, onClose: () => finish('') });
+    });
+  }
+
+  async function onPhotoUpload(el) {
+    const files = Array.from(el.files || []);
+    if (!files.length) return;
+    el.value = '';
+    let saved = 0;
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        toast(STRINGS.photoSkippedNonImage);
+        continue;
+      }
+      const caption = await promptCaption();
+      try {
+        const { thumb, full } = await compressImage(file);
+        await putPhotoRecord({
+          id: LM.genId('p'),
+          thumb,
+          full,
+          caption,
+          date: LM.todayStr(),
+          createdAt: Date.now(),
+        });
+        saved++;
+      } catch (e) {
+        reportError(e);
+        toast(STRINGS.photoFailed);
+      }
+    }
+    await reloadPhotos();
+    if (saved) toast(STRINGS.photoUploaded(saved));
+  }
+
+  async function reloadPhotos() {
+    LM.state.photos = await LM.db.getAll('photos');
+    render();
+  }
+
+  let lightboxUrl = null;
+
+  function revokeLightboxUrl() {
+    if (lightboxUrl) {
+      URL.revokeObjectURL(lightboxUrl);
+      lightboxUrl = null;
+    }
+  }
+
+  function lightboxInnerHtml(L) {
+    const p = L.list[L.idx];
+    revokeLightboxUrl();
+    const isBlob = p.full instanceof Blob;
+    lightboxUrl = isBlob ? URL.createObjectURL(p.full) : null;
+    return `
+      <img class="lightbox-img" src="${isBlob ? lightboxUrl : p.full}" alt="">
+      <button type="button" class="lightbox-close" data-action="photo-close" aria-label="关闭">✕</button>
+      ${L.idx > 0 ? '<button type="button" class="lightbox-nav prev" data-action="photo-prev" aria-label="上一张">‹</button>' : ''}
+      ${L.idx < L.list.length - 1 ? '<button type="button" class="lightbox-nav next" data-action="photo-next" aria-label="下一张">›</button>' : ''}
+      <div class="lightbox-info">
+        <p class="lightbox-caption">${esc(p.caption) || STRINGS.photoNoCaption}</p>
+        <p class="lightbox-date">${esc(p.date)} · 第 ${L.idx + 1}/${L.list.length} 张</p>
+        <button type="button" class="btn btn-danger btn-sm" data-action="photo-delete">${STRINGS.diaryDelete}</button>
+      </div>`;
+  }
+
+  function navLightbox(dir) {
+    const L = LM.state.lightbox;
+    if (!L) return;
+    const idx = L.idx + dir;
+    if (idx < 0 || idx >= L.list.length) return;
+    L.idx = idx;
+    const box = document.querySelector('.lightbox');
+    if (box) box.innerHTML = lightboxInnerHtml(L);
+  }
+
+  function openLightbox(id) {
+    const list = photoList();
+    const idx = list.findIndex((p) => p.id === id);
+    if (idx < 0) return;
+    LM.state.lightbox = { list, idx };
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft') navLightbox(-1);
+      if (e.key === 'ArrowRight') navLightbox(1);
+      if (e.key === 'Escape') closeModal();
+    };
+    openModal(lightboxInnerHtml(LM.state.lightbox), {
+      containerClass: 'lightbox',
+      closeOnMask: false,
+      onClose: () => {
+        revokeLightboxUrl();
+        document.removeEventListener('keydown', onKey);
+        LM.state.lightbox = null;
+      },
+    });
+    document.addEventListener('keydown', onKey);
+    // 触摸左右滑动切换
+    const box = document.querySelector('.lightbox');
+    let startX = null;
+    box.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+    box.addEventListener('touchend', (e) => {
+      if (startX == null) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      if (dx > 50) navLightbox(-1);
+      else if (dx < -50) navLightbox(1);
+      startX = null;
+    }, { passive: true });
+  }
+
+  /* ================= 备份与恢复（Step 23~24） ================= */
+
+  const META_KEYS = ['profile', 'settings', 'lastCelebrated'];
+
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = () => reject(new Error('读取失败'));
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  function dataURLToBlob(dataURL) {
+    const [head, b64] = String(dataURL).split(',');
+    const mime = (head.match(/data:([^;]+)/) || [, 'application/octet-stream'])[1];
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+
+  function isFallback() {
+    return LM.db.backend() === 'localStorage';
+  }
+
+  /** 写照片记录：IDB 后端存 Blob；降级后端转 dataURL（localStorage 无法存 Blob） */
+  async function putPhotoRecord(record) {
+    if (isFallback()) {
+      await LM.db.put('photos', null, {
+        ...record,
+        thumb: await blobToDataURL(record.thumb),
+        full: await blobToDataURL(record.full),
+      });
+    } else {
+      await LM.db.put('photos', null, record);
+    }
+  }
+
+  function downloadText(text, filename) {
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function exportData() {
+    try {
+      toast(STRINGS.exportToast);
+      const meta = {};
+      for (const k of META_KEYS) {
+        const v = await LM.db.get('meta', k);
+        if (v != null) meta[k] = v;
+      }
+      const photos = await Promise.all((await LM.db.getAll('photos')).map(async (p) => ({
+        id: p.id,
+        caption: p.caption,
+        date: p.date,
+        createdAt: p.createdAt,
+        thumb: p.thumb instanceof Blob ? await blobToDataURL(p.thumb) : p.thumb,
+        full: p.full instanceof Blob ? await blobToDataURL(p.full) : p.full,
+      })));
+      const payload = {
+        app: 'lovemark',
+        schemaVersion: LM.Validate.SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        data: {
+          meta,
+          diaries: await LM.db.getAll('diaries'),
+          photos,
+          anniversaries: await LM.db.getAll('anniversaries'),
+        },
+      };
+      const json = JSON.stringify(payload);
+      if (json.length > 100 * 1024 * 1024) {
+        const ok = await confirmDialog({ message: STRINGS.exportLargeConfirm });
+        if (!ok) return;
+      }
+      downloadText(json, `lovemark-backup-${LM.todayStr().replaceAll('-', '')}.json`);
+      toast(STRINGS.exportDone);
+    } catch (e) {
+      reportError(e);
+    }
+  }
+
+  async function onImportFile(el) {
+    const file = el.files && el.files[0];
+    if (!file) return;
+    el.value = '';
+    let text;
+    try {
+      text = await file.text();
+    } catch (e) {
+      toast(STRINGS.importReadFailed);
+      return;
+    }
+    let payload;
+    try {
+      payload = JSON.parse(text);
+    } catch (e) {
+      toast(STRINGS.importInvalidJson);
+      return;
+    }
+    const v = LM.Validate.validateImport(payload);
+    if (!v.ok) {
+      toast(`导入被拒绝：${v.reason}`);
+      return;
+    }
+    LM.state.importPayload = payload;
+    openModal(`
+      <h3 class="modal-title">导入备份</h3>
+      <p class="modal-message">${esc(STRINGS.importChoose)}</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-action="import-cancel">${STRINGS.importCancel}</button>
+        <button type="button" class="btn btn-ghost" data-action="import-overwrite">${STRINGS.importOverwrite}</button>
+        <button type="button" class="btn btn-primary" data-action="import-merge">${STRINGS.importMerge}</button>
+      </div>
+    `, { closeOnMask: false });
+  }
+
+  /** 导入前快照存入 meta 临时键（不放内存）；降级后端无法序列化 Blob，photos 跳过 */
+  async function snapshotCurrent() {
+    const snap = {
+      profile: await LM.db.get('meta', 'profile'),
+      settings: await LM.db.get('meta', 'settings'),
+      lastCelebrated: await LM.db.get('meta', 'lastCelebrated'),
+      diaries: await LM.db.getAll('diaries'),
+      photos: isFallback() ? null : await LM.db.getAll('photos'),
+      anniversaries: await LM.db.getAll('anniversaries'),
+    };
+    await LM.db.put('meta', '__snapshot__', snap);
+  }
+
+  async function rollbackFromSnapshot() {
+    const snap = await LM.db.get('meta', '__snapshot__');
+    if (!snap) return;
+    await LM.db.clear('meta');
+    await LM.db.clear('diaries');
+    await LM.db.clear('photos');
+    await LM.db.clear('anniversaries');
+    for (const k of META_KEYS) {
+      if (snap[k] != null) await LM.db.put('meta', k, snap[k]);
+    }
+    for (const d of snap.diaries || []) await LM.db.put('diaries', null, d);
+    if (snap.photos) for (const p of snap.photos) await LM.db.put('photos', null, p);
+    for (const a of snap.anniversaries || []) await LM.db.put('anniversaries', null, a);
+  }
+
+  async function runImport(payload, overwrite) {
+    const data = payload.data || {};
+    try {
+      await snapshotCurrent();
+      if (overwrite) {
+        await LM.db.clear('meta');
+        await LM.db.clear('diaries');
+        await LM.db.clear('photos');
+        await LM.db.clear('anniversaries');
+      }
+      if (data.meta) {
+        for (const k of META_KEYS) {
+          if (data.meta[k] != null) await LM.db.put('meta', k, data.meta[k]);
+        }
+      }
+      for (const d of data.diaries || []) await LM.db.put('diaries', null, d);
+      for (const a of data.anniversaries || []) await LM.db.put('anniversaries', null, a);
+      for (const p of data.photos || []) {
+        if (isFallback()) {
+          await LM.db.put('photos', null, {
+            id: p.id, caption: p.caption, date: p.date, createdAt: p.createdAt,
+            thumb: p.thumb, full: p.full,
+          });
+        } else {
+          await LM.db.put('photos', null, {
+            id: p.id, caption: p.caption, date: p.date, createdAt: p.createdAt,
+            thumb: dataURLToBlob(p.thumb), full: dataURLToBlob(p.full),
+          });
+        }
+      }
+      await LM.db.del('meta', '__snapshot__');
+    } catch (e) {
+      console.error('[爱记] 导入失败，尝试回滚', e);
+      try {
+        await rollbackFromSnapshot();
+        await LM.db.del('meta', '__snapshot__');
+        toast(STRINGS.importFailed);
+      } catch (e2) {
+        console.error('[爱记] 回滚失败', e2);
+        toast('导入失败且回滚异常，请尽快从备份文件恢复');
+      }
+      return;
+    }
+    await reloadAll();
+    toast(STRINGS.importDone);
+  }
+
+  async function reloadAll() {
+    const st = LM.state;
+    st.profile = await LM.db.get('meta', 'profile');
+    st.settings = await LM.db.get('meta', 'settings');
+    st.diaries = await LM.db.getAll('diaries');
+    st.photos = await LM.db.getAll('photos');
+    st.anniversaries = await LM.db.getAll('anniversaries');
+    if (st.profile) {
+      st.dailyQuote = Quotes.quoteForDate(LM.todayStr());
+      document.body.classList.remove('wizard');
+      startApp();
+    } else {
+      showWizard();
+    }
+  }
+
+  /* ================= 日记表单（Step 14） ================= */
+
+  function diaryFormHtml(d) {
+    return `
+      <h3 class="modal-title">${d.id ? STRINGS.diaryEditTitle : STRINGS.diaryNew}</h3>
+      <input class="input" data-action="form-field" data-field="title" placeholder="${STRINGS.diaryTitlePlaceholder}" value="${esc(d.title)}" maxlength="50">
+      <textarea class="input" data-action="form-field" data-field="content" placeholder="${STRINGS.diaryContentPlaceholder}" rows="5">${esc(d.content)}</textarea>
+      <label class="field-label">${STRINGS.diaryDateLabel}</label>
+      <input class="input" type="date" data-action="form-field" data-field="date" value="${esc(d.date)}" max="${LM.todayStr()}">
+      <label class="field-label">${STRINGS.diaryMoodLabel}</label>
+      <div class="chips">
+        ${MOODS.map((m) => `<button type="button" class="chip mood-chip ${d.mood === m ? 'chip-on' : ''}" data-action="form-mood" data-value="${m}">${m}</button>`).join('')}
+      </div>
+      <label class="field-label">${STRINGS.diaryWeatherLabel}</label>
+      <div class="chips">
+        ${WEATHERS.map((w) => `<button type="button" class="chip weather-chip ${d.weather === w ? 'chip-on' : ''}" data-action="form-weather" data-value="${w}">${w}</button>`).join('')}
+      </div>
+      <div class="modal-actions">
+        ${d.id ? '<button type="button" class="btn btn-danger" data-action="form-delete">删除</button>' : ''}
+        <button type="button" class="btn btn-ghost" data-action="form-cancel">${STRINGS.diaryCancel}</button>
+        <button type="button" class="btn btn-primary" data-action="form-save">${STRINGS.diarySave}</button>
+      </div>`;
+  }
+
+  function openDiaryForm(existing) {
+    const draft = {
+      type: 'diary',
+      id: existing ? existing.id : null,
+      title: existing ? existing.title : '',
+      content: existing ? existing.content : '',
+      date: existing ? existing.date : LM.todayStr(),
+      mood: existing ? existing.mood : MOODS[1],
+      weather: existing ? existing.weather : WEATHERS[0],
+      createdAt: existing ? existing.createdAt : null,
+    };
+    return new Promise((resolve) => {
+      let settled = false;
+      draft.finish = (v) => {
+        if (settled) return;
+        settled = true;
+        closeModal(true);
+        LM.state.form = null;
+        resolve(v);
+      };
+      LM.state.form = draft;
+      openModal(diaryFormHtml(draft), { closeOnMask: false, onClose: () => draft.finish({ mode: 'cancel' }) });
+    });
+  }
+
+  async function handleDiaryResult(res) {
+    if (!res || res.mode === 'cancel') return;
+    if (res.mode === 'delete') {
+      await LM.db.del('diaries', res.draft.id);
+      LM.state.diaries = LM.state.diaries.filter((d) => d.id !== res.draft.id);
+      render();
+      toast(STRINGS.deleted);
+      return;
+    }
+    const d = res.draft;
+    const record = {
+      id: d.id || LM.genId('d'),
+      title: d.title.trim(),
+      content: d.content.trim(),
+      date: d.date,
+      mood: d.mood,
+      weather: d.weather,
+      createdAt: d.createdAt ?? Date.now(),
+      updatedAt: Date.now(),
+    };
+    await LM.db.put('diaries', null, record);
+    const i = LM.state.diaries.findIndex((x) => x.id === record.id);
+    if (i >= 0) LM.state.diaries[i] = record;
+    else LM.state.diaries.push(record);
+    render();
+    toast(d.id ? STRINGS.updated : STRINGS.saved);
+  }
+
+  function diaryDetailHtml(d) {
+    return `
+      <h3 class="modal-title">${esc(diaryTitle(d))}</h3>
+      <p class="diary-detail-meta">${esc(d.date)} · ${d.mood} ${d.weather}</p>
+      <div class="diary-detail-content">${esc(d.content)}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-action="diary-edit" data-id="${d.id}">编辑</button>
+        <button type="button" class="btn btn-danger" data-action="diary-remove" data-id="${d.id}">${STRINGS.diaryDelete}</button>
+      </div>`;
+  }
+
+  /* ================= 纪念日表单（Step 18） ================= */
+
+  function annivFormHtml(d) {
+    return `
+      <h3 class="modal-title">${d.id ? '编辑纪念日' : STRINGS.annivAdd}</h3>
+      <input class="input" data-action="form-field" data-field="name" placeholder="${STRINGS.annivNamePlaceholder}" value="${esc(d.name)}" maxlength="20">
+      <label class="field-label">${STRINGS.annivDateLabel}</label>
+      <input class="input" type="date" data-action="form-field" data-field="date" value="${esc(d.date)}">
+      <label class="field-label">${STRINGS.annivTypeLabel}</label>
+      <div class="chips">
+        ${ANNIV_TYPES.map((t) => `<button type="button" class="chip type-chip ${d.type === t.key ? 'chip-on' : ''}" data-action="form-type" data-value="${t.key}">${t.icon} ${t.label}</button>`).join('')}
+      </div>
+      <label class="field-label">${STRINGS.annivRemindLabel}</label>
+      <input class="input" type="number" min="0" max="365" data-action="form-field" data-field="remindDays" value="${Number(d.remindDays)}">
+      <div class="modal-actions">
+        ${d.id ? '<button type="button" class="btn btn-danger" data-action="form-delete">删除</button>' : ''}
+        <button type="button" class="btn btn-ghost" data-action="form-cancel">${STRINGS.diaryCancel}</button>
+        <button type="button" class="btn btn-primary" data-action="form-save">${STRINGS.diarySave}</button>
+      </div>`;
+  }
+
+  function openAnnivForm(existing, prefill) {
+    const base = {
+      type: 'anniv',
+      id: existing ? existing.id : null,
+      name: existing ? existing.name : (prefill ? prefill.name : ''),
+      date: existing ? existing.date : (prefill ? prefill.date : LM.todayStr()),
+      type: existing ? existing.type : (prefill ? prefill.type : 'anniversary'),
+      remindDays: existing ? existing.remindDays : 0,
+    };
+    return new Promise((resolve) => {
+      let settled = false;
+      base.finish = (v) => {
+        if (settled) return;
+        settled = true;
+        closeModal(true);
+        LM.state.form = null;
+        resolve(v);
+      };
+      LM.state.form = base;
+      openModal(annivFormHtml(base), { closeOnMask: false, onClose: () => base.finish({ mode: 'cancel' }) });
+    });
+  }
+
+  async function handleAnnivResult(res) {
+    if (!res || res.mode === 'cancel') return;
+    if (res.mode === 'delete') {
+      await LM.db.del('anniversaries', res.draft.id);
+      LM.state.anniversaries = LM.state.anniversaries.filter((a) => a.id !== res.draft.id);
+      render();
+      toast(STRINGS.deleted);
+      return;
+    }
+    const d = res.draft;
+    const record = {
+      id: d.id || LM.genId('a'),
+      name: d.name.trim(),
+      date: d.date,
+      type: d.type,
+      remindDays: Math.max(0, Math.min(365, Number(d.remindDays) || 0)),
+    };
+    await LM.db.put('anniversaries', null, record);
+    const i = LM.state.anniversaries.findIndex((x) => x.id === record.id);
+    if (i >= 0) LM.state.anniversaries[i] = record;
+    else LM.state.anniversaries.push(record);
+    render();
+    toast(d.id ? STRINGS.updated : STRINGS.saved);
+  }
+
+  /* ================= 情侣资料表单（Step 22） ================= */
+
+  function profileFormHtml(d) {
+    return `
+      <h3 class="modal-title">${STRINGS.settingsProfile}</h3>
+      <div class="row2 avatar-row">
+        ${[['avatarA', 'avatarA'], ['avatarB', 'avatarB']].map(([t, p]) => `
+        <label class="avatar-upload">
+          <img class="avatar-sm" data-preview="${t}" src="${d[t] || ''}" ${d[t] ? '' : 'hidden'} alt="">
+          <input type="file" class="hidden-input" data-action="form-avatar" data-target="${t}" accept="image/*">
+        </label>`).join('')}
+      </div>
+      <label class="field-label">昵称（两人）</label>
+      <div class="row2">
+        <input class="input" data-action="form-field" data-field="nameA" value="${esc(d.nameA)}" maxlength="12" placeholder="你的昵称">
+        <input class="input" data-action="form-field" data-field="nameB" value="${esc(d.nameB)}" maxlength="12" placeholder="对方的昵称">
+      </div>
+      <label class="field-label">恋爱开始日期</label>
+      <input class="input" type="date" data-action="form-field" data-field="startDate" value="${esc(d.startDate)}" max="${LM.todayStr()}">
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-action="form-cancel">${STRINGS.diaryCancel}</button>
+        <button type="button" class="btn btn-primary" data-action="form-save">${STRINGS.diarySave}</button>
+      </div>`;
+  }
+
+  function openProfileForm() {
+    const p = LM.state.profile;
+    const draft = {
+      type: 'profile',
+      nameA: p.nameA,
+      nameB: p.nameB,
+      avatarA: p.avatarA,
+      avatarB: p.avatarB,
+      startDate: p.startDate,
+      origStartDate: p.startDate,
+    };
+    return new Promise((resolve) => {
+      let settled = false;
+      draft.finish = (v) => {
+        if (settled) return;
+        settled = true;
+        closeModal(true);
+        LM.state.form = null;
+        resolve(v);
+      };
+      LM.state.form = draft;
+      openModal(profileFormHtml(draft), { closeOnMask: false, onClose: () => draft.finish({ mode: 'cancel' }) });
+    });
+  }
+
+  async function handleProfileResult(res) {
+    if (!res || res.mode !== 'save') return;
+    const d = res.draft;
+    const profile = {
+      nameA: d.nameA.trim(),
+      nameB: d.nameB.trim(),
+      avatarA: d.avatarA,
+      avatarB: d.avatarB,
+      startDate: d.startDate,
+    };
+    await LM.db.put('meta', 'profile', profile);
+    LM.state.profile = profile;
+    render();
+    tick();
+    toast(STRINGS.updated);
+  }
+
+  /* ================= 事件委托与动作表 ================= */
+
+  function chipRefresh(selector, value) {
+    document.querySelectorAll(selector).forEach((c) => c.classList.toggle('chip-on', c.dataset.value === value));
+  }
+
+  function saveForm() {
+    const f = LM.state.form;
+    if (!f) return;
+    if (f.type === 'diary') {
+      if (!f.content.trim()) {
+        toast(STRINGS.diaryContentRequired);
+        return;
+      }
+      if (f.date > LM.todayStr()) {
+        toast(STRINGS.wizardDateFuture);
+        return;
+      }
+      f.finish({ mode: 'save', draft: f });
+    } else if (f.type === 'anniv') {
+      if (!f.name.trim()) {
+        toast(STRINGS.annivNameRequired);
+        return;
+      }
+      f.finish({ mode: 'save', draft: f });
+    } else if (f.type === 'profile') {
+      if (!f.nameA.trim() || !f.nameB.trim()) {
+        toast(STRINGS.profileNamesRequired);
+        return;
+      }
+      if (f.startDate > LM.todayStr()) {
+        toast(STRINGS.profileDateFuture);
+        return;
+      }
+      const changed = f.startDate !== f.origStartDate;
+      if (changed) {
+        confirmDialog({ message: STRINGS.profileDateChangeConfirm }).then((ok) => {
+          if (ok) f.finish({ mode: 'save', draft: f });
+        });
+      } else {
+        f.finish({ mode: 'save', draft: f });
+      }
+    }
+  }
+
+  async function handleAvatarFile(el) {
+    const file = el.files && el.files[0];
+    if (!file) return;
+    el.value = '';
+    if (!file.type.startsWith('image/')) {
+      toast(STRINGS.photoSkippedNonImage);
+      return;
+    }
+    try {
+      const dataUrl = await compressToDataURL(file, 256);
+      const target = el.dataset.target;
+      if (LM.state.wizard) {
+        LM.state.wizard[target] = dataUrl;
+      } else if (LM.state.form) {
+        LM.state.form[target] = dataUrl;
+      }
+      const img = document.querySelector(`[data-preview="${target}"]`);
+      if (img) {
+        img.hidden = false;
+        img.src = dataUrl;
+      }
+    } catch (e) {
+      console.error('[爱记] 头像处理失败', e);
+      toast(STRINGS.photoFailed);
+    }
+  }
+
+  const ACTIONS = {
+    'switch-page': (el) => switchPage(el.dataset.page),
+    'goto-diary': () => switchPage('diary'),
+    'goto-anniv': () => switchPage('anniversaries'),
+
+    // ---- 每日一句（Step 13）----
+    'quote-next': () => {
+      LM.state.dailyQuote = { index: -1, quote: Quotes.randomQuote() };
+      render();
+    },
+
+    // ---- 日记（Step 14~15）----
+    'diary-new': () => openDiaryForm(null).then(handleDiaryResult),
+    'diary-open': (el) => {
+      const d = LM.state.diaries.find((x) => x.id === el.dataset.id);
+      if (d) openModal(diaryDetailHtml(d), { closeOnMask: true });
+    },
+    'diary-edit': async (el) => {
+      const d = LM.state.diaries.find((x) => x.id === el.dataset.id);
+      if (!d) return;
+      closeModal(true);
+      await openDiaryForm(d).then(handleDiaryResult);
+    },
+    'diary-remove': async (el) => {
+      const d = LM.state.diaries.find((x) => x.id === el.dataset.id);
+      if (!d) return;
+      const ok = await confirmDialog({ message: STRINGS.diaryDeleteConfirm, danger: true });
+      if (!ok) return;
+      closeModal(true);
+      await LM.db.del('diaries', d.id);
+      LM.state.diaries = LM.state.diaries.filter((x) => x.id !== d.id);
+      render();
+      toast(STRINGS.deleted);
+    },
+    'filter-mood': (el) => {
+      LM.state.filters.mood = el.dataset.mood || null;
+      render();
+    },
+    'filter-search': (el) => {
+      LM.state.filters.keyword = el.value;
+      renderDiaryResults(); // 只更新结果区，保住输入焦点
+    },
+
+    // ---- 表单通用（单表单制）----
+    'form-field': (el) => {
+      const f = LM.state.form;
+      const field = el.dataset.field;
+      if (f && field && field in f) f[field] = el.value;
+    },
+    'form-mood': (el) => {
+      if (!LM.state.form) return;
+      LM.state.form.mood = el.dataset.value;
+      chipRefresh('.mood-chip', el.dataset.value);
+    },
+    'form-weather': (el) => {
+      if (!LM.state.form) return;
+      LM.state.form.weather = el.dataset.value;
+      chipRefresh('.weather-chip', el.dataset.value);
+    },
+    'form-type': (el) => {
+      if (!LM.state.form) return;
+      LM.state.form.type = el.dataset.value;
+      chipRefresh('.type-chip', el.dataset.value);
+    },
+    'form-save': () => saveForm(),
+    'form-cancel': () => {
+      if (LM.state.form) LM.state.form.finish({ mode: 'cancel' });
+    },
+    'form-delete': async () => {
+      const f = LM.state.form;
+      if (!f) return;
+      const msg = f.type === 'diary' ? STRINGS.diaryDeleteConfirm : STRINGS.annivDeleteConfirm;
+      const ok = await confirmDialog({ message: msg, danger: true });
+      if (ok) f.finish({ mode: 'delete', draft: f });
+    },
+    'form-avatar': (el) => handleAvatarFile(el),
+
+    // ---- 相册（Step 16~17）----
+    'photo-upload': (el) => onPhotoUpload(el),
+    'photo-open': (el) => openLightbox(el.dataset.id),
+    'photo-prev': () => navLightbox(-1),
+    'photo-next': () => navLightbox(1),
+    'photo-close': () => closeModal(),
+    'photo-delete': async () => {
+      const L = LM.state.lightbox;
+      if (!L) return;
+      const p = L.list[L.idx];
+      const ok = await confirmDialog({ message: STRINGS.photoDeleteConfirm, danger: true });
+      if (!ok) return;
+      await LM.db.del('photos', p.id);
+      LM.state.photos = LM.state.photos.filter((x) => x.id !== p.id);
+      LM.state.lightbox = null;
+      revokeLightboxUrl();
+      closeModal(true);
+      render();
+      toast(STRINGS.deleted);
+    },
+    'caption-save': () => {
+      const ta = document.querySelector('[data-caption-text]');
+      const f = LM.state.form;
+      // 说明框借用 finish 通道：caption 完成即恢复
+      if (ta && f && f.captionFinish) f.captionFinish(ta.value.trim());
+    },
+    'caption-skip': () => {
+      const f = LM.state.form;
+      if (f && f.captionFinish) f.captionFinish('');
+    },
+
+    // ---- 纪念日（Step 18）----
+    'anniv-add': () => openAnnivForm(null, null).then(handleAnnivResult),
+    'anniv-edit': async (el) => {
+      const a = LM.state.anniversaries.find((x) => x.id === el.dataset.id);
+      if (a) await openAnnivForm(a, null).then(handleAnnivResult);
+    },
+    'anniv-template': (el) => {
+      const t = ANNIV_TEMPLATES.find((x) => x.key === el.dataset.n);
+      if (!t || !LM.state.profile) return;
+      const date = t.date(LM.state.profile.startDate);
+      openAnnivForm(null, {
+        name: t.key === 'year' ? '在一起一周年' : `在一起 ${Number(t.key)} 天`,
+        date,
+        type: 'anniversary',
+      }).then(handleAnnivResult);
+    },
+
+    // ---- 向导（Step 11）----
+    'wizard-start': () => {
+      LM.state.wizard.step = 2;
+      render();
+    },
+    'wizard-field': (el) => {
+      const w = LM.state.wizard;
+      if (!w) return;
+      const field = el.dataset.field;
+      w[field] = el.value;
+      const nextBtn = document.querySelector('[data-action="wizard-next"]');
+      if (nextBtn) {
+        if (field === 'nameA' || field === 'nameB') {
+          nextBtn.disabled = !(w.nameA.trim() && w.nameB.trim());
+        } else if (field === 'startDate') {
+          const future = w.startDate > LM.todayStr();
+          nextBtn.disabled = future;
+          const hint = document.querySelector('#wizard-date-hint');
+          if (hint) hint.textContent = future ? STRINGS.wizardDateFuture : '';
+        }
+      }
+    },
+    'wizard-avatar': (el) => handleAvatarFile(el),
+    'wizard-next': (el) => {
+      const w = LM.state.wizard;
+      if (!w) return;
+      if (w.step === 2) {
+        if (!w.nameA.trim() || !w.nameB.trim()) {
+          toast(STRINGS.wizardNamesRequired);
+          return;
+        }
+        w.step = 3;
+      } else if (w.step === 3) {
+        if (w.startDate > LM.todayStr()) {
+          toast(STRINGS.wizardDateFuture);
+          return;
+        }
+        w.step = 4;
+      }
+      render();
+    },
+    'wizard-back': () => {
+      const w = LM.state.wizard;
+      if (!w || w.step <= 2) return;
+      w.step--;
+      render();
+    },
+    'wizard-bg-select': (el) => {
+      const w = LM.state.wizard;
+      if (!w) return;
+      w.bgId = el.dataset.bg;
+      const preset = BG_PRESETS.find((p) => p.id === w.bgId);
+      document.body.classList.remove('bg-dark');
+      document.body.style.background = `${preset.css} fixed`;
+      if (preset.dark) document.body.classList.add('bg-dark');
+      render();
+    },
+    'wizard-bg-skip': () => {
+      LM.state.wizard.bgId = 'preset-1';
+      finishWizard();
+    },
+    'wizard-finish': () => finishWizard(),
+
+    // ---- 设置页（Step 20/22）----
+    'bg-select': async (el) => {
+      const s = LM.state.settings;
+      if (!s) return;
+      s.bgType = 'preset';
+      s.bgValue = el.dataset.bg;
+      await LM.db.put('meta', 'settings', s);
+      applyBackground();
+      render();
+      toast(STRINGS.bgChanged);
+    },
+    'bg-upload': async (el) => {
+      const file = el.files && el.files[0];
+      if (!file) return;
+      el.value = '';
+      if (!file.type.startsWith('image/')) {
+        toast(STRINGS.photoSkippedNonImage);
+        return;
+      }
+      try {
+        const dataUrl = await compressToDataURL(file, 1920);
+        const s = LM.state.settings;
+        s.bgType = 'custom';
+        s.bgValue = dataUrl;
+        await LM.db.put('meta', 'settings', s);
+        applyBackground();
+        render();
+        toast(STRINGS.bgChanged);
+      } catch (e) {
+        console.error('[爱记] 背景处理失败', e);
+        toast(STRINGS.photoFailed);
+      }
+    },
+    'toggle-particles': async () => {
+      const s = LM.state.settings;
+      s.particles = !s.particles;
+      await LM.db.put('meta', 'settings', s);
+      if (s.particles) LM.particles.start();
+      else LM.particles.stop();
+      render();
+      toast(s.particles ? STRINGS.settingsParticlesOn : STRINGS.settingsParticlesOff);
+    },
+    'backup-soon': () => toast(STRINGS.settingsBackupSoon),
+    'export-data': () => exportData(),
+    'import-data': (el) => onImportFile(el),
+    'import-cancel': () => {
+      LM.state.importPayload = null;
+      closeModal(true);
+    },
+    'import-merge': () => {
+      const p = LM.state.importPayload;
+      LM.state.importPayload = null;
+      closeModal(true);
+      if (p) runImport(p, false);
+    },
+    'import-overwrite': () => {
+      const p = LM.state.importPayload;
+      LM.state.importPayload = null;
+      closeModal(true);
+      if (p) runImport(p, true);
+    },
+    'clear-data': async () => {
+      const ok1 = await confirmDialog({ message: STRINGS.clearDataConfirm1, danger: true });
+      if (!ok1) return;
+      const ok2 = await confirmDialog({ message: STRINGS.clearDataConfirm2, danger: true });
+      if (!ok2) return;
+      await LM.db.clear('meta');
+      await LM.db.clear('diaries');
+      await LM.db.clear('photos');
+      await LM.db.clear('anniversaries');
+      LM.state.profile = null;
+      LM.state.settings = null;
+      LM.state.diaries = [];
+      LM.state.photos = [];
+      LM.state.anniversaries = [];
+      document.body.style.background = '';
+      showWizard();
+      toast(STRINGS.clearDone);
+    },
+    'profile-edit': () => openProfileForm().then(handleProfileResult),
+  };
+
+  function dispatch(e) {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const fn = ACTIONS[el.dataset.action];
+    if (!fn) return;
+    if (LM.isDebug) console.log('[爱记][action]', el.dataset.action);
+    try {
+      const r = fn(el, e);
+      if (r && typeof r.catch === 'function') {
+        r.catch((err) => {
+          console.error('[爱记] 动作失败', el.dataset.action, err);
+          reportError(err);
+        });
+      }
+    } catch (err) {
+      console.error('[爱记] 动作失败', el.dataset.action, err);
+      reportError(err);
+    }
+  }
+
+  /** 统一错误提示：配额超限给专属文案（design.md §10） */
+  function reportError(e) {
+    console.error('[爱记]', e);
+    if (e && (e.name === 'QuotaExceededError' || (e.message && e.message.toLowerCase().includes('quota')))) {
+      toast(STRINGS.quotaExceeded);
+    } else {
+      toast(STRINGS.errorGeneric);
+    }
+  }
+
+  /* ================= Toast（队列，2.5s/条，design.md §7.4） ================= */
+
+  const toastQueue = [];
+  let toastShowing = false;
+
+  function toast(message) {
+    toastQueue.push(String(message));
+    pumpToast();
+  }
+
+  function pumpToast() {
+    if (toastShowing || toastQueue.length === 0) return;
+    toastShowing = true;
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = toastQueue.shift(); // textContent 天然免疫 HTML
+    document.querySelector('#toasts').appendChild(el);
+    setTimeout(() => {
+      el.classList.add('toast-out');
+      setTimeout(() => {
+        el.remove();
+        toastShowing = false;
+        pumpToast();
+      }, 250);
+    }, 2500);
+  }
+
+  /* ================= 通用弹窗与确认框 ================= */
+
+  let activeModal = null;
+
+  function lockScroll(lock) {
+    document.body.style.overflow = lock ? 'hidden' : '';
+  }
+
+  function openModal(html, opts = {}) {
+    const { closeOnMask = true, onClose = null, containerClass = 'modal' } = opts;
+    if (activeModal) activeModal.close(true);
+    const ov = document.querySelector('#overlay');
+    ov.hidden = false;
+    ov.innerHTML = `
+      <div class="modal-mask" data-modal-mask></div>
+      <div class="${containerClass}" role="dialog">${html}</div>`;
+    lockScroll(true);
+    activeModal = {
+      closeOnMask,
+      onClose,
+      close(silent) {
+        ov.hidden = true;
+        ov.innerHTML = '';
+        lockScroll(false);
+        activeModal = null;
+        if (!silent && onClose) onClose();
+      },
+    };
+    ov.querySelector('[data-modal-mask]').addEventListener('click', () => {
+      if (activeModal && activeModal.closeOnMask) activeModal.close();
+    });
+    return activeModal;
+  }
+
+  function closeModal(silent = false) {
+    if (activeModal) activeModal.close(silent);
+  }
+
+  function confirmDialog(opts = {}) {
+    const title = opts.title ?? STRINGS.confirmTitle;
+    const message = opts.message ?? '';
+    const confirmText = opts.confirmText ?? STRINGS.confirmOk;
+    const cancelText = opts.cancelText ?? STRINGS.confirmCancel;
+    const danger = !!opts.danger;
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (v) => {
+        if (settled) return;
+        settled = true;
+        closeModal(true);
+        resolve(v);
+      };
+      openModal(`
+        <h3 class="modal-title">${esc(title)}</h3>
+        <p class="modal-message">${esc(message)}</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-action="confirm-cancel">${esc(cancelText)}</button>
+          <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-action="confirm-ok">${esc(confirmText)}</button>
+        </div>
+      `, {
+        closeOnMask: false,
+        onClose: () => finish(false), // 被外部程序关闭 → 视为取消
+      });
+      const ov = document.querySelector('#overlay');
+      ov.querySelector('[data-action="confirm-ok"]').addEventListener('click', () => finish(true));
+      ov.querySelector('[data-action="confirm-cancel"]').addEventListener('click', () => finish(false));
+    });
+  }
+
+  /* ================= 启动 ================= */
+
+  function init() {
+    // 事件委托绑一次；首帧渲染由 main.js 的 showWizard()/startApp() 触发
+    ['click', 'change', 'input'].forEach((evt) => {
+      document.addEventListener(evt, dispatch);
+    });
+    // 全局兜底（tech-stack.md §9）：错误可见、页面不白屏
+    window.addEventListener('error', (e) => {
+      console.error('[爱记] 未捕获错误', e.error || e.message);
+      toast(STRINGS.errorGeneric);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      console.error('[爱记] 未处理的 Promise 拒绝', e.reason);
+      toast(STRINGS.errorGeneric);
+    });
+  }
+
+  /** 降级存储常驻横幅（Step 25；main.js 检测到 localStorage 后端时调用） */
+  function showFallbackBanner() {
+    if (document.querySelector('.fallback-banner')) return;
+    const el = document.createElement('div');
+    el.className = 'fallback-banner';
+    el.textContent = STRINGS.fallbackBanner;
+    document.body.prepend(el);
+    document.body.classList.add('show-banner');
+  }
+
+  const ui = {
+    init,
+    render,
+    switchPage,
+    esc,
+    toast,
+    openModal,
+    closeModal,
+    confirm: confirmDialog,
+    startApp,
+    showWizard,
+    applyBackground,
+    reportError,
+    showFallbackBanner,
+    STRINGS,
+  };
+
+  global.LM.ui = ui;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/**
+ * particles.js —— Canvas 爱心花瓣粒子（design.md §8.4，Step 21）
+ * 约 15 粒子/秒缓落；全屏透明 Canvas（pointer-events: none），不挡任何交互。
+ * 页面隐藏时 rAF 被浏览器自动暂停，无需额外处理。
+ */
+(function (global) {
+  'use strict';
+
+  const COLORS = ['#FF9A9E', '#FF7EB3', '#FECFEF', '#FFC3D8', '#FFD6E0'];
+  const SPAWN_PER_SEC = 15;
+
+  let canvas = null;
+  let ctx = null;
+  let rafId = null;
+  let running = false;
+  let pieces = [];
+  let spawnAcc = 0;
+  let last = null;
+
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement('canvas');
+    canvas.className = 'particles';
+    document.body.appendChild(canvas);
+    resize();
+    window.addEventListener('resize', resize);
+  }
+
+  function resize() {
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function spawnOne() {
+    pieces.push({
+      x: Math.random() * window.innerWidth,
+      y: -24,
+      vy: 18 + Math.random() * 28, // 像素/秒
+      vx: -8 + Math.random() * 16,
+      size: 6 + Math.random() * 8,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      rot: Math.random() * Math.PI * 2,
+      vr: -1 + Math.random() * 2, // 弧度/秒
+      heart: Math.random() < 0.5,
+    });
+  }
+
+  function drawHeart(c, p) {
+    c.save();
+    c.translate(p.x, p.y);
+    c.rotate(p.rot);
+    c.scale(p.size / 16, p.size / 16);
+    c.fillStyle = p.color;
+    c.beginPath();
+    c.moveTo(0, 5);
+    c.bezierCurveTo(-8, -3, -5, -9, 0, -4);
+    c.bezierCurveTo(5, -9, 8, -3, 0, 5);
+    c.fill();
+    c.restore();
+  }
+
+  function drawPetal(c, p) {
+    c.save();
+    c.translate(p.x, p.y);
+    c.rotate(p.rot);
+    c.scale(p.size / 16, p.size / 16);
+    c.fillStyle = p.color;
+    c.beginPath();
+    c.ellipse(0, 0, 8, 5, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+  }
+
+  function frame(ts) {
+    if (!running) return;
+    if (last == null) last = ts;
+    const dt = Math.min(0.1, (ts - last) / 1000);
+    last = ts;
+
+    spawnAcc += SPAWN_PER_SEC * dt;
+    while (spawnAcc >= 1) {
+      spawnOne();
+      spawnAcc -= 1;
+    }
+
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      const p = pieces[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.rot += p.vr * dt;
+      if (p.y > window.innerHeight + 40) {
+        pieces.splice(i, 1);
+        continue;
+      }
+      if (p.heart) drawHeart(ctx, p);
+      else drawPetal(ctx, p);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (running) return;
+    ensureCanvas();
+    running = true;
+    last = null;
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function stop() {
+    running = false;
+    if (rafId != null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    if (canvas) {
+      canvas.remove();
+      window.removeEventListener('resize', resize);
+      canvas = null;
+      ctx = null;
+    }
+    pieces = [];
+    spawnAcc = 0;
+  }
+
+  global.LM = global.LM || {};
+  global.LM.particles = { start, stop, running: () => running };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/**
+ * main.js —— 启动编排
+ * 流程：打开存储 → 读 meta（profile/settings）→ 有 profile 则加载各列表并进入应用，
+ *       无 profile 则进入初始化向导（Step 11）。
+ */
+(function (global) {
+  'use strict';
+
+  console.log('[爱记] 构建成功');
+
+  async function bootstrap() {
+    const db = global.LM.db;
+    const state = global.LM.state;
+    try {
+      await db.open();
+    } catch (e) {
+      console.error('[爱记] 存储初始化失败', e);
+    }
+    state.profile = await db.get('meta', 'profile');
+    state.settings = await db.get('meta', 'settings');
+    if (state.profile) {
+      state.diaries = await db.getAll('diaries');
+      state.photos = await db.getAll('photos');
+      state.anniversaries = await db.getAll('anniversaries');
+      state.dailyQuote = global.LM.Quotes.quoteForDate(global.LM.todayStr());
+    }
+    global.LM.ui.init();
+    if (global.LM.db.backend() === 'localStorage') {
+      global.LM.ui.showFallbackBanner();
+    }
+    if (!state.profile) {
+      global.LM.ui.showWizard();
+    } else {
+      global.LM.ui.startApp();
+    }
+  }
+
+  // 守卫：模块加载期不得访问 DOM（Node 冒烟可加载；浏览器在 DOMContentLoaded 后启动）
+  if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      bootstrap().catch((e) => console.error('[爱记] 启动失败', e));
+    });
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+
+  </script>
+</body>
+</html>
